@@ -30,7 +30,7 @@ Everything is **read-only / passive** — no memory injection, no game process a
 
 ## Screenshots
 
-> *(add your own screenshots here)*
+> SOON.
 
 ---
 
