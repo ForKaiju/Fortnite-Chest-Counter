@@ -31,13 +31,13 @@ Everything is **read-only / passive** — no memory injection, no game process a
 ## Screenshots
 
 **Live Panel — real-time chest counter with detection controls**
-![Live Panel](<img width="584" height="848" alt="live-panel" src="https://github.com/user-attachments/assets/1a368f85-902b-4545-8832-497520b56f1a" />)
+![Live Panel](https://raw.githubusercontent.com/MyNameIsKajiu/Fortnite-Chest-Counter/main/live-panel.png)
 
 **Replays — parsed match history with chest + pickaxe stats**
-![Replays](<img width="586" height="581" alt="replays" src="https://github.com/user-attachments/assets/c5cef42d-7f27-4f96-a461-995652aae080" />)
+![Replays](https://raw.githubusercontent.com/MyNameIsKajiu/Fortnite-Chest-Counter/main/replays.png)
 
 **Treasure Hunt — per-reward odds tracker with Treasure Hour scheduler**
-![Treasure Hunt](<img width="584" height="848" alt="treasure-hunt" src="https://github.com/user-attachments/assets/2fb1bb5a-c24e-45d4-b4ea-6569979e1902" />)
+![Treasure Hunt](https://raw.githubusercontent.com/MyNameIsKajiu/Fortnite-Chest-Counter/main/treasure-hunt.png)
 
 ---
 
