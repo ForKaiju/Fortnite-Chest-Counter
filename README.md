@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗃️ Chest Counter
+# 🗃️ Fortnite Chest Counter
 
 **Fortnite chest tracker with live TikTok overlay, OBS browser sources & Pirate Treasure hunt stats**
 
