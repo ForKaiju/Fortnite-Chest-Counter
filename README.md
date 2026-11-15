@@ -30,7 +30,14 @@ Everything is **read-only / passive** — no memory injection, no game process a
 
 ## Screenshots
 
-> SOON.
+**Live Panel — real-time chest counter with detection controls**
+![Live Panel](screenshots/live-panel.png)
+
+**Replays — parsed match history with chest + pickaxe stats**
+![Replays](screenshots/replays.png)
+
+**Treasure Hunt — per-reward odds tracker with Treasure Hour scheduler**
+![Treasure Hunt](screenshots/treasure-hunt.png)
 
 ---
 
@@ -118,6 +125,15 @@ npm run release    # builds + zips for release
 ## License
 
 MIT — do whatever you want with it.
+
+---
+
+## ⚠️ Disclaimer
+
+This project is **not affiliated with, endorsed by, or in any way associated with Epic Games or Fortnite.**
+Fortnite is a registered trademark of Epic Games, Inc. All game-related assets, names, and trademarks belong to their respective owners.
+
+**Use at your own risk.** The developers of Chest Counter take no responsibility for any consequences arising from its use, including but not limited to account actions, bans, or violations of Epic Games' Terms of Service. This tool operates passively (screen reading + replay parsing only) and does not modify game files or memory, but you are solely responsible for how you use it.
 
 ---
 
