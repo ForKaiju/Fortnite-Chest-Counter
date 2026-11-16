@@ -1,0 +1,54 @@
+name: Bug report
+description: Something does not work — a wrong count, an unreadable replay, an overlay that will not load…
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search the [existing issues](../../issues?q=is%3Aissue) first — most counting problems are a keybind or prompt-gate setting.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, what you got instead.
+      placeholder: |
+        1. Opened the Treasure tab
+        2. The countdown showed the wrong hour
+        3. Expected Saturday 21:00 UTC
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Chest Counter version
+      description: The release you downloaded, e.g. 1.0.1.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - Live counting
+        - Treasure tab or odds
+        - Replays or the post-match audit
+        - Overlay (OBS)
+        - TikTok Live bridge
+        - Settings
+        - Install or startup
+    validations:
+      required: true
+  - type: input
+    id: season
+    attributes:
+      label: Fortnite season or update
+      description: e.g. Chapter 7 Season 2, or the build number from the Fortnite lobby.
+  - type: textarea
+    id: log
+    attributes:
+      label: Replays tab and data folder
+      description: |
+        Paste anything the **Replays** tab shows for the affected match (or a screenshot of it).
+        If the app will not start or the bridge fails, also attach `%APPDATA%\Chest Counter\config.json`.
+      render: text

@@ -1,0 +1,35 @@
+name: Feature request
+description: An overlay, a stat, a setting you would like to see
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the feature and the moment you would use it in.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it helps
+      description: What it replaces today — a manual count, a second app, a scribbled note.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      multiple: true
+      options:
+        - Live counting
+        - Treasure tab or odds
+        - Replays
+        - Overlay
+        - TikTok Live bridge
+        - Settings
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Keep it within the app's rules
+      options:
+        - label: This does not need the game's memory, injection, or input automation.
+          required: true

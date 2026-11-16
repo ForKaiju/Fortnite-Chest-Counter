@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@600;700;800&display=swap');
+body{background:transparent;display:flex;align-items:center;justify-content:center;width:460px;height:132px;overflow:hidden;font-family:'Inter',system-ui,sans-serif;}
+.panel{position:relative;width:460px;height:132px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(22,15,4,.94),rgba(10,8,4,.96));
+  border:1px solid rgba(240,192,64,.45);
+  box-shadow:inset 0 0 40px rgba(240,192,64,.06);
+  display:flex;align-items:center;gap:14px;padding:0 18px;user-select:none;}
+.panel.live{border-color:rgba(255,70,85,.65);box-shadow:inset 0 0 40px rgba(255,70,85,.08);}
+.token{width:74px;height:74px;flex-shrink:0;border-radius:14px;position:relative;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 35%,#ffe9a8,#e0a72c 55%,#8a5d0a);
+  box-shadow:0 0 18px rgba(240,192,64,.45),inset 0 -3px 8px rgba(0,0,0,.35);}
+.token span{font-family:'Cinzel',serif;font-size:30px;font-weight:900;color:#3b1c00;text-shadow:0 1px 0 rgba(255,235,160,.8);}
+.token.live{background:radial-gradient(circle at 50% 35%,#ffd9dc,#ff4655 55%,#8a0d18);box-shadow:0 0 22px rgba(255,70,85,.55),inset 0 -3px 8px rgba(0,0,0,.35);}
+.token.live span{color:#2a0006;text-shadow:0 1px 0 rgba(255,200,205,.85);}
+.col{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;flex:1;}
+.hd{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#f0c040;}
+.panel.live .hd{color:#ff8a92;}
+.clock{font-family:'Cinzel',serif;font-size:38px;font-weight:900;line-height:1;color:#ffe6a8;font-variant-numeric:tabular-nums;letter-spacing:1px;
+  text-shadow:0 0 20px rgba(240,192,64,.45),0 2px 0 rgba(0,0,0,.5);}
+.panel.live .clock{color:#ffd2d6;text-shadow:0 0 20px rgba(255,70,85,.5),0 2px 0 rgba(0,0,0,.5);}
+.clock.small{font-size:26px;}
+.sub{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#9a8b6a;}
+.chips{display:flex;gap:6px;margin-top:2px;}
+.chip{display:flex;align-items:baseline;gap:4px;background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.35);border-radius:7px;padding:3px 7px;}
+.chip.live{background:rgba(255,70,85,.12);border-color:rgba(255,70,85,.45);}
+.chip b{font-size:11px;font-weight:800;color:#f0c040;font-variant-numeric:tabular-nums;}
+.chip.live b{color:#ff8a92;}
+.chip em{font-style:normal;font-size:8px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#9a8b6a;}
+</style>
+</head>
+<body>
+<div class="panel" id="panel">
+  <div class="token" id="token"><span id="tokenGlyph">✦</span></div>
+  <div class="col">
+    <div class="hd" id="hd">Next Treasure Hour</div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="sub" id="sub">waiting for a scheduled hour</div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let ST={nextHourAt:null,hourEndsAt:null,hourMinutes:120,scheduledHour:false,treasureHour:false,treasure:[],week:null};
+const pad=n=>String(n).padStart(2,'0');
+
+function fmt(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  return d>0 ? d+'d '+pad(h)+':'+pad(m)+':'+pad(sec) : pad(h)+':'+pad(m)+':'+pad(sec);
+}
+function when(startMs,endMs){
+  const s=new Date(startMs),e=new Date(endMs);
+  const t=x=>x.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  return s.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' · '+t(s)+' – '+t(e);
+}
+
+function paintChips(){
+  const hour=!!ST.scheduledHour;
+  const boosters=(ST.treasure||[]).filter(t=>t.boost);
+  $('chips').innerHTML=boosters.map(t=>
+    '<div class="chip'+(hour?' live':'')+'"><b>'+t.boost+'×</b><em>'+t.short+'</em></div>'
+  ).join('');
+}
+
+function paint(){
+  const panel=$('panel'),token=$('token'),clock=$('clock'),hd=$('hd'),sub=$('sub');
+  const hour=!!ST.scheduledHour;
+  panel.classList.toggle('live',hour);
+  token.classList.toggle('live',hour);
+  $('tokenGlyph').textContent=hour?'!':'✦';
+  hd.textContent=hour?'Treasure Hour Live':'Next Treasure Hour';
+
+  const start=ST.nextHourAt?Date.parse(ST.nextHourAt):0;
+  const end=ST.hourEndsAt?Date.parse(ST.hourEndsAt):0;
+
+  if(hour&&end){
+    clock.textContent=fmt(end-Date.now());
+    clock.classList.remove('small');
+    sub.textContent='boosted odds active — every chest rolls the better table';
+  }else if(start&&end&&Date.now()<start){
+    const left=start-Date.now();
+    clock.textContent=fmt(left);
+    clock.classList.toggle('small',left>86400000);
+    sub.textContent=when(start,end);
+  }else if(start){
+    clock.textContent='00:00:00';clock.classList.remove('small');
+    sub.textContent='hour finished — next window loads automatically';
+  }else{
+    clock.textContent='--:--:--';
+    clock.classList.remove('small');
+    sub.textContent='sat 9–11 pm · sun 2–4 am';
+  }
+  paintChips();
+}
+
+function apply(d){
+  if(!d)return;
+  ST={nextHourAt:d.nextHourAt||null,hourEndsAt:d.hourEndsAt||null,
+      hourMinutes:d.hourMinutes||120,
+      scheduledHour:!!d.scheduledHour,treasureHour:!!d.treasureHour,
+      treasure:d.treasure||ST.treasure,week:d.week||ST.week};
+  paint();
+}
+
+// SSE is instant; TikTok's embedded browser buffers event streams, so the 2s
+// poll fallback keeps the countdown alive there too. The clock ticks locally
+// every second either way — no server round trip per second.
+let lastPushAt=0;
+const es=new EventSource('/events');
+es.addEventListener('state',e=>{lastPushAt=Date.now();apply(JSON.parse(e.data));});
+setInterval(async()=>{
+  if(Date.now()-lastPushAt<4000) return;
+  try{ apply(await (await fetch('/api/state')).json()); }catch(e){}
+},2000);
+setInterval(paint,1000);
+fetch('/api/state').then(r=>r.json()).then(apply).catch(()=>{});
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Download the latest release
+    url: https://github.com/ForKaiju/Fortnite-Chest-Counter/releases/latest
+    about: The zip, the changelog and the release notes.
+  - name: Read the setup guide
+    url: https://github.com/ForKaiju/Fortnite-Chest-Counter#getting-started
+    about: Replays, the prompt gate, overlay sizes and the TikTok bridge.

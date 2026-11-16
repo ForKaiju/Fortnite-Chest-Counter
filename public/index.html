@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Chest Counter — Control Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0a0d;--card:#131316;--card2:#17171c;--border:#26262c;--border2:#33333a;
+  --red:#ff4655;--red-dim:#e5484d;--red-glow:rgba(255,70,85,.25);
+  --gold:#f0c040;--text:#ececef;--muted:#8f8f98;--green:#3ddc84;--amber:#ffb224;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  background:radial-gradient(1200px 400px at 50% -100px, rgba(229,72,77,.10), transparent 70%), var(--bg);
+  color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;
+  padding:16px 14px 22px;display:flex;flex-direction:column;gap:12px;align-items:center;
+}
+::-webkit-scrollbar{width:8px;}::-webkit-scrollbar-thumb{background:#2a2a30;border-radius:4px;}
+
+/* ── header ── */
+.topbar{width:100%;max-width:580px;display:flex;align-items:center;gap:10px;}
+.topbar .logo{width:30px;height:30px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}
+.topbar h1{font-size:15px;font-weight:800;letter-spacing:-.2px;flex:1;}
+.topbar h1 span{color:var(--red);}
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;background:var(--card);border:1px solid var(--border);font-size:10.5px;font-weight:600;color:var(--muted);white-space:nowrap;}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:#3a3a42;transition:background .3s,box-shadow .3s;}
+.chip .dot.on{background:var(--green);box-shadow:0 0 8px rgba(61,220,132,.6);}
+.chip .dot.detected{background:var(--gold);box-shadow:0 0 8px rgba(240,192,64,.7);}
+.chip .dot.error{background:var(--red);box-shadow:0 0 8px var(--red-glow);}
+.chip.live{color:var(--text);border-color:var(--border2);}
+
+/* ── cards ── */
+.card{width:100%;max-width:580px;background:linear-gradient(180deg,var(--card),#101013);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.35);}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.card-head h2{font-size:12px;font-weight:700;letter-spacing:.3px;flex:1;}
+.card-head .hint{font-size:10px;color:var(--muted);}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:9px;letter-spacing:.4px;text-transform:uppercase;}
+.badge.red{background:rgba(255,70,85,.12);color:var(--red);border:1px solid rgba(255,70,85,.3);}
+.badge.gold{background:rgba(240,192,64,.1);color:var(--gold);border:1px solid rgba(240,192,64,.3);}
+
+/* ── replay stats ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:10px 0;}
+.stats-grid .stat-num{font-size:22px;font-weight:800;color:var(--gold);text-align:center;line-height:1.1;}
+.stats-grid .stat-label{font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;margin-top:3px;}
+.replay-list{display:flex;flex-direction:column;gap:4px;max-height:190px;overflow-y:auto;}
+.replay-row{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted);background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:6px 10px;}
+.replay-row.fail{border-color:rgba(255,70,85,.3);}
+.replay-row .rp-when{font-weight:700;color:var(--text);flex-shrink:0;}
+.replay-row .rp-pl{flex-shrink:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.replay-row .rp-val{flex:1;text-align:right;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.replay-row.fail .rp-val{color:var(--red);}
+
+/* ── stat panels ── */
+.stats{width:100%;max-width:580px;display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;}
+/* counter cards are laid out with absolutely positioned art/number, so they
+   need an explicit height — auto-sizing collapses them to their 1px border */
+.stats > .stat{height:112px;}
+.stat{position:relative;border-radius:14px;overflow:hidden;user-select:none;cursor:pointer;border:1px solid var(--border);background:var(--card2);transition:transform .08s, border-color .2s;}
+.stat:hover{border-color:var(--border2);}
+.stat:active{transform:scale(.985);}
+.stat .art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;}
+.stat .label{position:absolute;top:11px;left:0;right:0;text-align:center;font-family:'Cinzel Decorative',serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#3b1c00;z-index:3;}
+.stat .sub{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#5a3200;opacity:.7;z-index:3;}
+.chest-wrap{position:absolute;left:6px;top:50%;transform:translateY(-54%);width:86px;height:86px;z-index:5;pointer-events:none;}
+.chest-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(2px 4px 10px rgba(0,0,0,.6));transform-origin:center center;}
+.chest-img.open{animation:chestOpen .55s cubic-bezier(.36,.07,.19,.97) forwards;}
+@keyframes chestOpen{0%{transform:scale(1) rotate(0deg);}18%{transform:scale(1.28) rotate(-10deg);filter:drop-shadow(0 0 20px rgba(255,200,0,1)) drop-shadow(0 0 8px rgba(255,80,0,.9));}35%{transform:scale(1.32) rotate(9deg);filter:drop-shadow(0 0 26px rgba(255,220,0,1)) drop-shadow(0 0 10px rgba(255,60,0,1));}55%{transform:scale(1.14) rotate(-4deg);}75%{transform:scale(1.05) rotate(2deg);}100%{transform:scale(1) rotate(0deg);filter:drop-shadow(2px 4px 10px rgba(0,0,0,.6));}}
+.stat .num-wrap{position:absolute;left:92px;right:40px;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:2;}
+.big-num{font-weight:800;font-size:54px;line-height:1;color:#1e0d00;text-shadow:0 3px 0 #c97b00,0 5px 0 rgba(150,65,0,.45),0 1px 4px rgba(0,0,0,.4);letter-spacing:-1px;}
+.big-num.bump{animation:bigBump .42s cubic-bezier(.36,.07,.19,.97) forwards;}
+@keyframes bigBump{0%{transform:scale(1.6);color:#c41a00;}38%{transform:scale(.91);}62%{transform:scale(1.07);}100%{transform:scale(1);color:#1e0d00;}}
+.particles{position:absolute;left:52px;top:50%;width:0;height:0;pointer-events:none;z-index:6;}
+.particle{position:absolute;border-radius:50%;opacity:0;}
+.particle.go{animation:pFly .7s ease-out forwards;}
+@keyframes pFly{0%{opacity:1;transform:translate(0,0) scale(1.3);}100%{opacity:0;transform:var(--tx) var(--ty) scale(0);}}
+.flash-overlay{position:absolute;inset:6px;border-radius:12px;pointer-events:none;opacity:0;z-index:7;border:3px solid rgba(255,195,0,.9);}
+.flash-overlay.fire{animation:flashRing .45s ease-out forwards;}
+@keyframes flashRing{0%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1.05);}}
+.starburst{position:absolute;left:96px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:6;opacity:0;font-size:22px;color:#FFD700;}
+.starburst.fire{animation:sBurst .5s ease-out forwards;}
+@keyframes sBurst{0%{opacity:1;transform:translateY(-50%) scale(.3) rotate(-30deg);}45%{opacity:1;transform:translateY(-65%) scale(1.4) rotate(12deg);}100%{opacity:0;transform:translateY(-90%) scale(.9) rotate(5deg);}}
+
+/* ── controls ── */
+.row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.row:last-child{margin-bottom:0;}
+.status-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:8px 12px;flex:1;min-width:0;}
+.status-pill .dot{width:8px;height:8px;border-radius:50%;background:#3a3a42;flex-shrink:0;transition:background .3s,box-shadow .3s;}
+.status-pill .dot.on{background:var(--green);box-shadow:0 0 8px rgba(61,220,132,.6);}
+.status-pill .dot.detected{background:var(--gold);box-shadow:0 0 10px rgba(240,192,64,.9);}
+.status-pill .dot.error{background:var(--red);box-shadow:0 0 8px var(--red-glow);}
+.status-text{font-size:10.5px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.status-text b{color:var(--text);}
+
+.btn{background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.3px;color:var(--text);cursor:pointer;transition:background .15s,transform .08s,border-color .15s;flex-shrink:0;white-space:nowrap;}
+.btn:hover{background:#1d1d22;border-color:#3d3d46;}
+.btn:active{transform:scale(.96);}
+.btn.primary{background:var(--red-dim);border-color:var(--red);color:#fff;}
+.btn.primary:hover{background:var(--red);}
+.btn.stop{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.4);color:var(--red);}
+.btn.small{padding:6px 10px;font-size:10px;}
+
+/* switch */
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;cursor:pointer;}
+/* The checkbox itself fills the switch and sits above the track. It used to be
+   0x0, so a real mouse click hit the decorative .track span and never reached
+   the input — the control looked clickable but did nothing. */
+.switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer;z-index:2;}
+.switch .track{position:absolute;inset:0;background:#2a2a30;border:1px solid var(--border2);border-radius:11px;transition:background .2s,border-color .2s;pointer-events:none;}
+.switch .knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#8a8a92;transition:transform .2s,background .2s;pointer-events:none;}
+.switch input:checked + .track{background:rgba(255,70,85,.25);border-color:var(--red);}
+.switch input:checked + .track .knob{transform:translateX(16px);background:var(--red);box-shadow:0 0 8px var(--red-glow);}
+.switch input:focus-visible + .track{outline:2px solid var(--gold);outline-offset:2px;}
+
+/* sliders */
+.slider-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.slider-row:last-child{margin-bottom:0;}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;}
+.slider-label{font-size:10px;font-weight:600;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;}
+.slider-val{font-size:10px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;}
+input[type=range]{width:100%;height:4px;accent-color:var(--red);cursor:pointer;-webkit-appearance:none;background:#26262c;border-radius:2px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fff2;box-shadow:0 0 6px var(--red-glow);cursor:pointer;}
+
+/* bars */
+.bar-bg{flex:1;height:8px;border-radius:4px;background:#1c1c21;border:1px solid var(--border);overflow:hidden;min-width:40px;}
+.bar-fill{height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,var(--red-dim),var(--gold));transition:width .05s linear;}
+.bar-fill.blue{background:linear-gradient(90deg,#4466ff,var(--gold));}
+
+/* keybind capture */
+.key-cap{display:flex;align-items:center;gap:10px;}
+.key-display{flex:1;display:flex;align-items:center;justify-content:center;height:38px;background:#0c0c0f;border:1px solid var(--border2);border-radius:10px;font-size:14px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;}
+.key-display.listening{border-color:var(--red);color:var(--red);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,70,85,.4);}50%{box-shadow:0 0 0 6px rgba(255,70,85,.08);}}
+
+/* OBS rows */
+.obs-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.obs-row:last-child{margin-bottom:0;}
+.obs-label{font-size:10px;font-weight:600;color:var(--muted);width:70px;flex-shrink:0;text-transform:uppercase;letter-spacing:.4px;}
+.obs-url{flex:1;background:#0c0c0f;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:10.5px;font-family:ui-monospace,Consolas,monospace;color:#c8c8ce;letter-spacing:.3px;user-select:all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.copy-btn{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-family:inherit;font-size:10px;font-weight:700;color:var(--text);cursor:pointer;transition:background .15s;flex-shrink:0;}
+.copy-btn:hover{background:#1d1d22;}
+.copy-btn.copied{background:rgba(61,220,132,.15);border-color:rgba(61,220,132,.4);color:var(--green);}
+.obs-size{font-size:8.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;flex-shrink:0;width:52px;text-align:right;font-variant-numeric:tabular-nums;cursor:pointer;}
+.obs-size:hover{color:var(--gold);}
+.obs-size:active{color:var(--red);}
+
+/* inputs */
+.num-input{flex:1;background:#0c0c0f;border:1px solid var(--border2);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;font-weight:700;color:var(--text);text-align:center;outline:none;transition:border-color .2s;-moz-appearance:textfield;min-width:0;}
+.num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.num-input:focus{border-color:var(--red);}
+.num-input::placeholder{color:#4a4a52;font-weight:500;}
+.confirm{font-size:10px;font-weight:700;color:var(--green);opacity:0;transition:opacity .2s;flex-shrink:0;min-width:44px;text-align:center;}
+.confirm.show{opacity:1;}
+
+.note{font-size:10px;line-height:1.7;color:var(--muted);margin-top:10px;}
+.note b{color:var(--text);}
+
+/* segmented */
+.seg{display:flex;background:#0c0c0f;border:1px solid var(--border2);border-radius:10px;padding:3px;flex-shrink:0;}
+.seg button{background:transparent;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;}
+.seg button.active{background:var(--red-dim);color:#fff;}
+
+/* toast */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#1d1d22;border:1px solid var(--border2);border-radius:12px;padding:10px 18px;font-size:11.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:transform .25s,opacity .25s;z-index:99;pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+#toast.ok{border-color:rgba(61,220,132,.5);}
+#toast.err{border-color:rgba(229,72,77,.6);}
+
+/* ── tabs ── */
+.tabbar{width:100%;max-width:580px;display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;position:sticky;top:0;z-index:20;}
+.tabbar button{flex:1;min-width:0;background:transparent;border:none;border-radius:9px;padding:9px 4px;font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.3px;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;}
+.tabbar button:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.tabbar button.active{background:rgba(255,70,85,.16);color:var(--text);box-shadow:inset 0 0 0 1px rgba(255,70,85,.38);}
+.tabbar .t-ico{font-size:11.5px;line-height:1;}
+.tabbar .t-dot{width:5px;height:5px;border-radius:50%;background:var(--red);display:none;box-shadow:0 0 6px var(--red-glow);}
+.tabbar button.alert .t-dot{display:block;}
+.tab-panel{width:100%;display:none;flex-direction:column;gap:12px;align-items:center;}
+.tab-panel > *{flex-shrink:0;}
+.tab-panel.active{display:flex;}
+
+/* treasure schedule / weeks */
+.hour-clock{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 0 4px;}
+.hour-clock .hc-big{font-family:'Cinzel Decorative',serif;font-size:30px;font-weight:700;letter-spacing:1px;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(240,192,64,.35);}
+.hour-clock .hc-big.live{color:var(--red);text-shadow:0 0 22px var(--red-glow);}
+.hour-clock .hc-sub{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);}
+.mult-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:3px;}
+.mult{background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.22);border-radius:9px;padding:7px 6px;text-align:center;}
+.mult .m-val{font-size:13px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
+.mult .m-lab{font-size:8px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-top:2px;line-height:1.3;}
+.week-list{display:flex;flex-direction:column;gap:5px;}
+.week-row{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:9px;padding:6px 10px;}
+.week-row.now{border-color:rgba(240,192,64,.45);background:rgba(240,192,64,.07);}
+.week-row .w-n{font-size:9px;font-weight:800;color:var(--muted);width:26px;flex-shrink:0;letter-spacing:.5px;}
+.week-row .w-name{flex:1;min-width:0;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.week-row .w-date{font-size:9px;font-weight:600;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums;}
+.week-row.now .w-date{color:var(--gold);}
+
+/* treasure hour list — real weekly windows, in local time */
+.hour-row{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:9px;padding:6px 10px;}
+.hour-row.now{border-color:rgba(255,70,85,.5);background:rgba(255,70,85,.08);}
+.hour-row.next{border-color:rgba(240,192,64,.4);background:rgba(240,192,64,.06);}
+.hour-row .h-tag{font-size:8px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);width:52px;flex-shrink:0;}
+.hour-row.now .h-tag{color:var(--red);}
+.hour-row.next .h-tag{color:var(--gold);}
+.hour-row .h-when{flex:1;min-width:0;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;}
+.hour-row .h-in{font-size:9px;font-weight:700;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums;}
+.hour-row.now .h-in{color:var(--red);}
+.hour-row.next .h-in{color:var(--gold);}
+
+/* prize week cards with artwork */
+.wk-card{display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:12px;padding:9px 10px;}
+.wk-card.now{border-color:rgba(240,192,64,.45);background:rgba(240,192,64,.055);}
+.wk-top{display:flex;align-items:center;gap:9px;}
+.wk-crew{width:44px;height:44px;border-radius:9px;object-fit:cover;object-position:top center;flex-shrink:0;background:#101014;border:1px solid rgba(255,255,255,.07);}
+.wk-meta{flex:1;min-width:0;}
+.wk-kicker{font-size:8px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.wk-card.now .wk-kicker{color:var(--gold);}
+.wk-name{font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.wk-date{font-size:8.5px;font-weight:600;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums;}
+.wk-items{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.wk-item{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.wk-img{position:relative;width:100%;aspect-ratio:1/1;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 30%,#1b1b22,#0d0d11);border:1px solid rgba(255,255,255,.07);}
+.wk-img img{width:100%;height:100%;object-fit:contain;}
+.wk-img.empty{color:#3a3a44;font-size:16px;font-weight:800;}
+.wk-item em{font-style:normal;font-size:7.5px;line-height:1.2;font-weight:600;color:var(--muted);text-align:center;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.thr-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:2px;}
+.thr-row{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:7px 10px;}
+.thr-row.found-recent{border-color:rgba(240,192,64,.45);background:rgba(240,192,64,.06);}
+.thr-name{flex:1;min-width:0;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.thr-name small{display:block;font-size:9px;font-weight:500;color:var(--muted);}
+.thr-odds{font-size:10px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;width:86px;text-align:right;flex-shrink:0;}
+.thr-odds.boosted{color:var(--red);text-shadow:0 0 8px var(--red-glow);}
+.thr-since{font-size:9px;font-weight:600;color:var(--muted);width:74px;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.thr-since b{color:var(--text);}
+.thr-got{color:var(--gold);font-weight:800;font-size:8.5px;letter-spacing:.3px;}
+.thr-btn{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;font-family:inherit;font-size:9.5px;font-weight:700;color:var(--text);cursor:pointer;transition:background .15s;flex-shrink:0;}
+.thr-btn:hover{background:#1d1d22;border-color:#3d3d46;}
+.thr-btn:active{transform:scale(.95);}
+
+/* jackpot */
+#jackpot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(600px 400px at 50% 45%, rgba(255,195,0,.25), rgba(10,10,13,.94) 75%);z-index:100;opacity:0;pointer-events:none;transition:opacity .35s;}
+#jackpot.show{opacity:1;}
+#jackpot .jp-chest{width:110px;height:110px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,195,0,.9));animation:jpPulse 1s infinite;}
+@keyframes jpPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+#jackpot .jp-title{font-family:'Cinzel Decorative',serif;font-size:24px;font-weight:700;color:var(--gold);text-shadow:0 0 24px rgba(255,195,0,.8),0 2px 6px rgba(0,0,0,.6);text-align:center;letter-spacing:1px;}
+#jackpot .jp-sub{font-size:12px;font-weight:700;color:var(--text);text-align:center;letter-spacing:2px;text-transform:uppercase;}
+#jackpot .jp-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+#jackpot .jp-conf{position:absolute;top:-12px;border-radius:2px;animation:jcFall linear forwards;}
+@keyframes jcFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(105vh) rotate(720deg);opacity:.6;}}
+</style>
+</head>
+<body>
+
+<!-- header -->
+<div class="topbar">
+  <img class="logo" src="/assets/chest.png" alt=""/>
+  <h1>Chest <span>Counter</span></h1>
+  <div class="chip" id="chipListener" title="Global key listener"><div class="dot" id="chipListenerDot"></div><span id="chipListenerText">Listener</span></div>
+  <div class="chip" id="chipFocus" title="Focused app"><div class="dot on"></div><span id="chipFocusText">Focus</span></div>
+</div>
+
+<!-- tabs -->
+<div class="tabbar" id="tabbar">
+  <button data-tab="live" class="active" onclick="switchTab('live')"><span class="t-ico">⚔</span>Live</button>
+  <button data-tab="treasure" onclick="switchTab('treasure')"><span class="t-ico">✦</span>Treasure</button>
+  <button data-tab="replays" onclick="switchTab('replays')"><span class="t-ico">▤</span>Replays<span class="t-dot" id="dotReplays"></span></button>
+  <button data-tab="overlays" onclick="switchTab('overlays')"><span class="t-ico">◉</span>Overlays</button>
+  <button data-tab="settings" onclick="switchTab('settings')"><span class="t-ico">⚙</span>Settings</button>
+</div>
+
+<div class="tab-panel active" id="tab-live">
+
+<!-- stat cards -->
+<div class="stats">
+  <div class="stat" id="panelTotal" onclick="doBump()">
+    <img class="art" src="/assets/banner.png" alt=""/>
+    <div class="label">Total Chests</div>
+    <div class="chest-wrap"><img class="chest-img" id="chestImgTotal" src="/assets/chest.png" alt=""/></div>
+    <div class="num-wrap"><div class="big-num" id="numTotal">0</div></div>
+    <div class="particles" id="partTotal"></div>
+    <div class="flash-overlay" id="flashTotal"></div>
+    <div class="starburst" id="starTotal">✦</div>
+    <div class="sub">All time · click to bump</div>
+  </div>
+  <div class="stat" id="panelToday">
+    <img class="art" src="/assets/banner.png" alt=""/>
+    <div class="label">Today</div>
+    <div class="chest-wrap"><img class="chest-img" id="chestImgToday" src="/assets/chest.png" alt=""/></div>
+    <div class="num-wrap"><div class="big-num" id="numToday">0</div></div>
+    <div class="particles" id="partToday"></div>
+    <div class="flash-overlay" id="flashToday"></div>
+    <div class="starburst" id="starToday">✦</div>
+    <div class="sub">Session</div>
+  </div>
+</div>
+
+<!-- detection -->
+<div class="card">
+  <div class="card-head">
+    <h2>Chest Detection</h2>
+    <span class="badge gold" id="modeBadge" style="cursor:pointer;" onclick="toggleSmart()" title="Click to switch detection mode">Smart Tap</span>
+  </div>
+
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="keyDot"></div>
+      <span class="status-text" id="keyStatus">Global listener active — press <b id="keyStatusKey">E</b> in game</span>
+    </div>
+    <div class="switch"><input type="checkbox" id="listenerSwitch" checked onchange="toggleHook(this.checked)"><span class="track"><span class="knob"></span></span></div>
+  </div>
+
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="promptDot"></div>
+      <span class="status-text" id="promptStatus">Chest prompt watcher — checking screen…</span>
+    </div>
+    <div class="switch"><input type="checkbox" id="promptSwitch" checked onchange="onPromptGate(this.checked)"><span class="track"><span class="knob"></span></span></div>
+  </div>
+
+  <div class="row key-cap">
+    <span class="slider-label" style="width:64px;">Keybind</span>
+    <div class="key-display" id="keyDisplay">E</div>
+    <button class="btn small" id="keyCapBtn" onclick="captureKey()">Change</button>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Tap window · min</span><span class="slider-val" id="tapMinVal">80 ms</span></div>
+    <input type="range" id="tapMinSlider" min="40" max="400" step="10" value="80" oninput="onSlider('tapMin',this)">
+  </div>
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Tap window · max</span><span class="slider-val" id="tapMaxVal">900 ms</span></div>
+    <input type="range" id="tapMaxSlider" min="400" max="2500" step="50" value="900" oninput="onSlider('tapMax',this)">
+  </div>
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Legacy hold duration</span><span class="slider-val" id="holdMsVal">3000 ms</span></div>
+    <input type="range" id="holdMsSlider" min="1000" max="5000" step="250" value="3000" oninput="onSlider('holdMs',this)">
+  </div>
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Duplicate merge window</span><span class="slider-val" id="dedupeVal">900 ms</span></div>
+    <input type="range" id="dedupeSlider" min="300" max="2000" step="50" value="900" oninput="onSlider('dedupeMs',this)">
+  </div>
+
+  <div class="note" id="modeNote"><b>Smart Tap</b>: a quick key press counts the moment you release — presses longer than the max window are ignored, so looting menus never count. <b>Legacy</b>: hold for the full duration. Works system-wide, listen-only — no game memory, no injection, no automation.</div>
+</div>
+
+<!-- sound fx -->
+<div class="card">
+  <div class="card-head"><h2>Count Sound</h2></div>
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="sfxDot"></div>
+      <span class="status-text" id="sfxStatus">Plays the chest-open sound on every count</span>
+    </div>
+    <div class="switch"><input type="checkbox" id="sfxSwitch" onchange="onSlider('sfxOn',this)"><span class="track"><span class="knob"></span></span></div>
+  </div>
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Volume</span><span class="slider-val" id="sfxVolVal">60%</span></div>
+    <input type="range" id="sfxVolSlider" min="0" max="100" step="5" value="60" oninput="onSlider('sfxVol',this)">
+  </div>
+  <div class="row">
+    <button class="btn small" onclick="testSfx()">Test Sound</button>
+  </div>
+</div>
+
+</div><!-- /tab-live -->
+
+<div class="tab-panel" id="tab-treasure">
+
+<!-- treasure hunt -->
+<div class="card">
+  <div class="card-head">
+    <h2>Treasure Hunt</h2>
+    <span class="badge gold" id="thrBadge" style="display:none;">Treasure Hour ×1.5</span>
+    <span class="hint" id="thrRate">— chests/hr</span>
+  </div>
+
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="thrHourDot"></div>
+      <span class="status-text"><b>Treasure Hour</b> — boosted odds active</span>
+    </div>
+    <div class="switch"><input type="checkbox" id="thrHourSwitch" onchange="toggleTreasureHour(this.checked)"><span class="track"><span class="knob"></span></span></div>
+  </div>
+
+  <div class="thr-rows" id="thrRows"></div>
+
+  <div class="note">Per-chest odds from Epic's official Pirate Treasure rates. Counters track chests since your last find of each item — <b>Mark Found</b> when a banner pops. Negative "expected" means you're statistically overdue.</div>
+  <div class="row" style="margin-top:10px;">
+    <button class="btn small" onclick="clearFinds()">Clear Finds</button>
+    <span class="hint" style="margin-left:auto;">feeds the Items overlay</span>
+  </div>
+</div>
+
+<!-- treasure hour countdown -->
+<div class="card">
+  <div class="card-head">
+    <h2>Next Treasure Hour</h2>
+    <span class="badge" id="thrSchedBadge">weekly</span>
+  </div>
+
+  <div class="hour-clock">
+    <div class="hc-big" id="thrCountdown">--:--:--</div>
+    <div class="hc-sub" id="thrCountdownSub">loading the weekly schedule…</div>
+  </div>
+
+  <div class="week-list" id="hourList"></div>
+
+  <div class="note">Every Treasure Hour this season runs <b>Saturday 9:00–11:00 PM</b> and <b>Sunday 2:00–4:00 AM</b> (your time) — the list above is calculated locally from that cadence, so the countdown and the boosted odds flip on their own. Override below only if Epic announces a one-off window.</div>
+
+  <div class="row key-cap">
+    <span class="slider-label" style="width:64px;">Override</span>
+    <input class="num-input" type="datetime-local" id="thrWhen" style="font-size:11.5px;text-align:left;"/>
+    <button class="btn small" onclick="scheduleHour()">Set</button>
+    <button class="btn small" onclick="clearHour()">Clear</button>
+  </div>
+  <div class="slider-row">
+    <div class="slider-top"><span class="slider-label">Override length</span><span class="slider-val" id="thrLenVal">60 min</span></div>
+    <input type="range" id="thrLenSlider" min="15" max="180" step="15" value="60" oninput="onHourLen(this)"/>
+  </div>
+
+  <div class="mult-row">
+    <div class="mult"><div class="m-val" id="mxOutfit">7.5×</div><div class="m-lab">Gold Outfit</div></div>
+    <div class="mult"><div class="m-val" id="mxShop">1.5×</div><div class="m-lab">Shop Access</div></div>
+    <div class="mult"><div class="m-val" id="mxVehicle">10×</div><div class="m-lab">Vehicle &amp; Decal</div></div>
+  </div>
+  <div class="note">Multipliers are the ones Epic runs in the weekly hours: 7.5× Gold Outfit, 1.5× Pirate Shop Access, 10× Vehicle &amp; Decal (one earlier hour ran 10× / 2×). Odds in the table above flip to boosted the moment the window opens.</div>
+</div>
+
+<!-- prize weeks -->
+<div class="card">
+  <div class="card-head"><h2>Treasure Hunters — Weeks</h2><span class="hint" id="weekNow">—</span></div>
+  <div class="week-list" id="weekList"></div>
+  <div class="note">Each week rings in a new prize crew — the artwork above is the live week's set. Weekly prizes rotate when the week flips (Sunday 2:00 AM ET / 7:00 AM UTC), and chests you open in a normal match roll against the current week's table. Weeks 4–5 unlock as Epic ships them.</div>
+</div>
+
+</div><!-- /tab-treasure -->
+
+<div class="tab-panel" id="tab-replays">
+
+<!-- REPLAY STATS -->
+<div class="card">
+  <div class="card-head">
+    <h2>Replay Stats</h2>
+    <span class="badge" id="replayBadge" title="Reads Fortnite replay files after each match">off</span>
+  </div>
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="replayDot"></div>
+      <span class="status-text" id="replayStatus">Watching for finished matches…</span>
+    </div>
+  </div>
+  <div class="stats-grid" id="replayGrid">
+    <div class="stat"><div class="stat-num" id="rpOwn">0</div><div class="stat-label">chests opened (replay)</div></div>
+    <div class="stat"><div class="stat-num" id="rpBroken">0</div><div class="stat-label">pickaxe-broken</div></div>
+    <div class="stat"><div class="stat-num" id="rpMatches">0</div><div class="stat-label">matches parsed</div></div>
+  </div>
+  <div id="replayList" class="replay-list"></div>
+  <div class="hint" style="margin-top:8px;">Counts are read from each match's replay file (Fortnite Settings › Game › Replays: <b>ON</b>). Parsed after the match ends — opened + pickaxe-broken chests, verified against the match log so nothing double-counts.</div>
+</div>
+
+</div><!-- /tab-replays -->
+
+<div class="tab-panel" id="tab-overlays">
+
+<!-- TIKTOK BRIDGE -->
+<div class="card">
+  <div class="card-head">
+    <h2>TikTok Live Link</h2>
+    <span class="badge" id="ttBadge" title="Public https:// link for TikTok Live Studio's Add link field">off</span>
+  </div>
+  <div class="row">
+    <div class="status-pill">
+      <div class="dot" id="ttDot"></div>
+      <span class="status-text" id="ttStatus">Bridge off — start it to get a TikTok-ready link</span>
+    </div>
+    <div class="switch"><input type="checkbox" id="ttSwitch" onchange="onTunnel(this.checked)"><span class="track"><span class="knob"></span></span></div>
+  </div>
+  <div id="ttLinks" style="display:none;">
+    <div class="obs-row">
+      <div class="obs-label">Total</div>
+      <div class="obs-url" id="ttUrlTotal">—</div>
+      <button class="copy-btn" onclick="copyUrl('ttUrlTotal',this)">Copy</button>
+      <span class="obs-size" onclick="copySize(this)" title="source size in TikTok Live Studio">500×148</span>
+    </div>
+    <div class="obs-row">
+      <div class="obs-label">Today</div>
+      <div class="obs-url" id="ttUrlToday">—</div>
+      <button class="copy-btn" onclick="copyUrl('ttUrlToday',this)">Copy</button>
+      <span class="obs-size" onclick="copySize(this)" title="source size in TikTok Live Studio">500×148</span>
+    </div>
+    <div class="obs-row">
+      <div class="obs-label">Hour</div>
+      <div class="obs-url" id="ttUrlTreasure">—</div>
+      <button class="copy-btn" onclick="copyUrl('ttUrlTreasure',this)">Copy</button>
+      <span class="obs-size" onclick="copySize(this)" title="source size in TikTok Live Studio">460×132</span>
+    </div>
+    <div class="obs-row">
+      <div class="obs-label">Items</div>
+      <div class="obs-url" id="ttUrlItems">—</div>
+      <button class="copy-btn" onclick="copyUrl('ttUrlItems',this)">Copy</button>
+      <span class="obs-size" onclick="copySize(this)" title="source size in TikTok Live Studio">420×386</span>
+    </div>
+    <div class="obs-row">
+      <div class="obs-label">Week</div>
+      <div class="obs-url" id="ttUrlWeek">—</div>
+      <button class="copy-btn" onclick="copyUrl('ttUrlWeek',this)">Copy</button>
+      <span class="obs-size" onclick="copySize(this)" title="source size in TikTok Live Studio">420×410</span>
+    </div>
+    <div class="hint" style="margin-top:6px;">Paste into TikTok Live Studio › <b>Add link</b>, set the source to the size on the right, then drag it where you want it on the 1080×1920 canvas. Only the overlays are reachable through this link — the panel and your stats stay on this PC.</div>
+  </div>
+</div>
+
+<!-- OBS -->
+<div class="card">
+  <div class="card-head"><h2>OBS Browser Sources</h2><span class="hint">transparent BG</span></div>
+  <div class="obs-row">
+    <div class="obs-label">Total</div>
+    <div class="obs-url" id="urlTotal">http://localhost:3333/overlay/total</div>
+    <button class="copy-btn" onclick="copyUrl('urlTotal',this)">Copy</button>
+    <button class="copy-btn" onclick="previewOverlay('total')">View</button>
+    <span class="obs-size" onclick="copySize(this)" title="click to copy this size">500×148</span>
+  </div>
+  <div class="obs-row">
+    <div class="obs-label">Today</div>
+    <div class="obs-url" id="urlToday">http://localhost:3333/overlay/today</div>
+    <button class="copy-btn" onclick="copyUrl('urlToday',this)">Copy</button>
+    <button class="copy-btn" onclick="previewOverlay('today')">View</button>
+    <span class="obs-size" onclick="copySize(this)" title="click to copy this size">500×148</span>
+  </div>
+  <div class="obs-row">
+    <div class="obs-label">Hour</div>
+    <div class="obs-url" id="urlTreasure">http://localhost:3333/overlay/treasure</div>
+    <button class="copy-btn" onclick="copyUrl('urlTreasure',this)">Copy</button>
+    <button class="copy-btn" onclick="previewOverlay('treasure')">View</button>
+    <span class="obs-size" onclick="copySize(this)" title="click to copy this size">460×132</span>
+  </div>
+  <div class="obs-row">
+    <div class="obs-label">Items</div>
+    <div class="obs-url" id="urlItems">http://localhost:3333/overlay/items</div>
+    <button class="copy-btn" onclick="copyUrl('urlItems',this)">Copy</button>
+    <button class="copy-btn" onclick="previewOverlay('items')">View</button>
+    <span class="obs-size" onclick="copySize(this)" title="click to copy this size">420×386</span>
+  </div>
+  <div class="obs-row">
+    <div class="obs-label">Week</div>
+    <div class="obs-url" id="urlWeek">http://localhost:3333/overlay/week</div>
+    <button class="copy-btn" onclick="copyUrl('urlWeek',this)">Copy</button>
+    <button class="copy-btn" onclick="previewOverlay('week')">View</button>
+    <span class="obs-size" onclick="copySize(this)" title="click to copy this size">420×410</span>
+  </div>
+  <div class="note">Set the browser source to the size on the right — every overlay is drawn at exactly that resolution and keeps its aspect. In OBS use <b>Width</b>/<b>Height</b> on the source (custom resolution), in TikTok Live Studio use the source size, then scale the source on the canvas instead of resizing it. Click a size to copy <code>500x148</code> straight to the clipboard.</div>
+</div>
+
+<!-- canvas sizing -->
+<div class="card">
+  <div class="card-head"><h2>Overlay Sizes</h2><span class="hint">click to copy</span></div>
+  <div class="obs-row"><div class="obs-label">Total / Today</div><div class="obs-url">500 × 148 · aspect 3.38 : 1</div><span class="obs-size" onclick="copySize(this)">500×148</span></div>
+  <div class="obs-row"><div class="obs-label">Hour</div><div class="obs-url">460 × 132 · aspect 3.48 : 1</div><span class="obs-size" onclick="copySize(this)">460×132</span></div>
+  <div class="obs-row"><div class="obs-label">Items</div><div class="obs-url">420 × 386 · aspect 1.09 : 1</div><span class="obs-size" onclick="copySize(this)">420×386</span></div>
+  <div class="obs-row"><div class="obs-label">Week</div><div class="obs-url">420 × 410 · aspect 1.02 : 1</div><span class="obs-size" onclick="copySize(this)">420×410</span></div>
+  <div class="note"><b>Custom resolution:</b> if your canvas isn't 1080p — 720p, 900×1600 vertical for TikTok, 1440p — keep the aspect ratio above and scale the source by the same factor on both axes. Doubling is always safe: <b>1000×296</b> total/today, <b>920×264</b> hour, <b>840×772</b> items, <b>840×820</b> week. Never stretch one axis only — the digits and prize tiles smear.</div>
+</div>
+
+</div><!-- /tab-overlays -->
+
+<div class="tab-panel" id="tab-settings">
+
+<!-- manual -->
+<div class="card">
+  <div class="card-head"><h2>Manual Control</h2></div>
+  <div class="row">
+    <span class="slider-label" style="width:64px;">Set Total</span>
+    <input class="num-input" type="number" id="iTotal" placeholder="—" min="0">
+    <button class="btn small" onclick="setField('total','iTotal','cTotal')">Set</button>
+    <span class="confirm" id="cTotal">✓</span>
+  </div>
+  <div class="row">
+    <span class="slider-label" style="width:64px;">Set Today</span>
+    <input class="num-input" type="number" id="iToday" placeholder="—" min="0">
+    <button class="btn small" onclick="setField('today','iToday','cToday')">Set</button>
+    <span class="confirm" id="cToday">✓</span>
+  </div>
+  <div class="row">
+    <span class="slider-label" style="width:64px;">Adjust</span>
+    <input class="num-input" type="number" id="iAdj" placeholder="e.g. -1">
+    <button class="btn small" onclick="doAdj()">Apply</button>
+    <span class="confirm" id="cAdj">✓</span>
+  </div>
+  <div class="row" style="margin-top:4px;">
+    <button class="btn small" onclick="doReset('today')">Reset Today</button>
+    <button class="btn small stop" onclick="doReset('all')">Reset All</button>
+  </div>
+</div>
+
+</div><!-- /tab-settings -->
+
+<div id="toast"></div>
+
+<div id="jackpot">
+  <div class="jp-confetti" id="jpConfetti"></div>
+  <img class="jp-chest" src="/assets/chest.png" alt=""/>
+  <div class="jp-title" id="jpTitle">TREASURE FOUND</div>
+  <div class="jp-sub" id="jpSub">Chest logged — keep hunting</div>
+</div>
+
+<script>
+// ── config ──
+let CFG={smartMode:true,keyVK:69,keyName:'E',tapMin:80,tapMax:900,holdMs:3000,dedupeMs:900,sfxOn:true,sfxVol:60};
+window.electronAPI.getConfig().then(c=>{CFG={...CFG,...c};syncConfigUI();});
+function syncConfigUI(){
+  document.getElementById('keyDisplay').textContent=CFG.keyName;
+  document.getElementById('keyStatusKey').textContent=CFG.keyName;
+  document.getElementById('tapMinSlider').value=CFG.tapMin;document.getElementById('tapMinVal').textContent=CFG.tapMin+' ms';
+  document.getElementById('tapMaxSlider').value=CFG.tapMax;document.getElementById('tapMaxVal').textContent=CFG.tapMax+' ms';
+  document.getElementById('holdMsSlider').value=CFG.holdMs;document.getElementById('holdMsVal').textContent=CFG.holdMs+' ms';
+  document.getElementById('dedupeSlider').value=CFG.dedupeMs;document.getElementById('dedupeVal').textContent=CFG.dedupeMs+' ms';
+  document.getElementById('sfxSwitch').checked=CFG.sfxOn;
+  document.getElementById('sfxVolSlider').value=CFG.sfxVol;document.getElementById('sfxVolVal').textContent=CFG.sfxVol+'%';
+  document.getElementById('promptSwitch').checked=!!CFG.promptGate;
+  setSmartBtn(CFG.smartMode);
+}
+// ══════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════
+const TABS=['live','treasure','replays','overlays','settings'];
+function switchTab(name){
+  if(!TABS.includes(name))name='live';
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+  document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  try{localStorage.setItem('fct.tab',name);}catch(e){}
+}
+switchTab((function(){try{return localStorage.getItem('fct.tab')||'live';}catch(e){return 'live';}})());
+
+// ══════════════════════════════════════════════════════════
+// TREASURE HOURS (weekly schedule) + PRIZE WEEKS
+// ══════════════════════════════════════════════════════════
+// The server owns both: treasure-schedule.js resolves the weekly cadence
+// (Sat 19:00 UTC, Sun 02:00 UTC) into nextHourAt / hourEndsAt, and
+// treasure-weeks.js carries the prize crews and their artwork filenames.
+// Nothing here has to know what month it is.
+const THR={nextHourAt:null,hourEndsAt:null,hourMinutes:60,hourSource:null,
+           nextHours:[],weeks:[],week:{n:null,name:null},lastLive:false};
+
+function pad2(n){return String(n).padStart(2,'0');}
+function fmtLeft(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const d=Math.floor(s/86400);
+  const h=Math.floor((s%86400)/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  if(d>0) return d+'d '+pad2(h)+':'+pad2(m)+':'+pad2(sec);
+  return pad2(h)+':'+pad2(m)+':'+pad2(sec);
+}
+// "Sat, Nov 21 · 9:00 PM – 11:00 PM" in the player's timezone
+function fmtWhen(startMs,endMs){
+  const s=new Date(startMs), e=new Date(endMs);
+  const day=s.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const t=x=>x.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const sameDay=s.toDateString()===e.toDateString();
+  return day+' · '+t(s)+' – '+(sameDay?'':e.toLocaleDateString('en-US',{weekday:'short'})+' ')+t(e);
+}
+function shortLeft(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60);
+  if(d>0) return 'in '+d+'d '+h+'h';
+  if(h>0) return 'in '+h+'h '+pad2(m)+'m';
+  return 'in '+pad2(m)+'m';
+}
+
+function renderHourList(){
+  const list=document.getElementById('hourList');
+  if(!list)return;
+  const now=Date.now();
+  if(!THR.nextHours.length){list.innerHTML='';return;}
+  list.innerHTML=THR.nextHours.map((w,i)=>{
+    const start=Date.parse(w.start), end=Date.parse(w.end);
+    const live=now>=start&&now<end;
+    const cls=live?' now':(i===0?' next':'');
+    const tag=live?'live':(i===0?'next':'soon');
+    const when=fmtWhen(start,end);
+    return '<div class="hour-row'+cls+'">'+
+      '<div class="h-tag">'+tag+'</div>'+
+      '<div class="h-when">'+when+'</div>'+
+      '<div class="h-in">'+(live?'ends '+fmtLeft(end-now):shortLeft(start-now))+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderWeeks(){
+  const list=document.getElementById('weekList');
+  if(!list)return;
+  const weeks=THR.weeks||[];
+  const cur=THR.week&&THR.week.n;
+  list.innerHTML=weeks.map(w=>{
+    const d1=new Date(w.from+'T12:00:00'), d2=new Date(w.to+'T12:00:00');
+    const label=d1.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+
+      (d2.getMonth()===d1.getMonth()?d2.getDate():d2.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+    const crew=w.crew?'<img class="wk-crew" src="/img/treasure/'+w.crew+'" alt="">':'<div class="wk-crew"></div>';
+    const tiles=w.locked
+      ? Array.from({length:6},()=>'<div class="wk-item"><div class="wk-img empty">?</div><em>hidden</em></div>').join('')
+      : (w.items||[]).map(it=>'<div class="wk-item" title="'+esc(it.type+': '+it.name)+'">'+
+          '<div class="wk-img"><img src="/img/treasure/'+it.img+'" alt="'+esc(it.name)+'"></div>'+
+          '<em>'+esc(it.name)+'</em></div>').join('');
+    return '<div class="wk-card'+(w.n===cur?' now':'')+'">'+
+      '<div class="wk-top">'+crew+
+        '<div class="wk-meta">'+
+          '<div class="wk-kicker">Week '+w.n+(w.n===cur?' · live now':'')+'</div>'+
+          '<div class="wk-name">'+esc(w.name)+'</div>'+
+          '<div class="wk-date">'+label+'</div>'+
+        '</div>'+
+        (w.locked?'<span class="badge">locked</span>':'')+
+      '</div>'+
+      '<div class="wk-items">'+tiles+'</div>'+
+    '</div>';
+  }).join('');
+  const hint=document.getElementById('weekNow');
+  if(hint)hint.textContent=THR.week&&THR.week.n?('week '+THR.week.n+' · '+THR.week.name):'between weeks';
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function applyHourState(d){
+  if(!d)return;
+  if(typeof d.hourMinutes==='number'){
+    THR.hourMinutes=d.hourMinutes;
+    const sl=document.getElementById('thrLenSlider');
+    if(sl&&+sl.value!==d.hourMinutes)sl.value=d.hourMinutes;
+    const v=document.getElementById('thrLenVal');
+    if(v)v.textContent=d.hourMinutes+' min';
+  }
+  if('nextHourAt' in d){
+    THR.nextHourAt=d.nextHourAt||null;
+    THR.hourEndsAt=d.hourEndsAt||null;
+    THR.hourSource=d.hourSource||null;
+    THR.nextHours=Array.isArray(d.nextHours)?d.nextHours:THR.nextHours;
+    const inp=document.getElementById('thrWhen');
+    if(inp&&document.activeElement!==inp&&THR.hourSource==='override'&&THR.nextHourAt){
+      const dt=new Date(THR.nextHourAt);
+      inp.value=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate())+'T'+pad2(dt.getHours())+':'+pad2(dt.getMinutes());
+    }
+    if(inp&&THR.hourSource!=='override'&&document.activeElement!==inp)inp.value='';
+    const badge=document.getElementById('thrSchedBadge');
+    if(badge){
+      const live=!!d.scheduledHour||!!d.treasureHour;
+      badge.textContent=THR.hourSource==='override'?(live?'override · live':'override'):(live?'live now':'weekly');
+      badge.className='badge'+(live?' gold':'');
+    }
+    renderHourList();
+  }
+  if(d.week){
+    THR.weeks=d.week.weeks||THR.weeks;
+    THR.week={n:d.week.n||null,name:d.week.name||null};
+    renderWeeks();
+  }
+  tickHourClock(true);
+}
+
+function tickHourClock(force){
+  const big=document.getElementById('thrCountdown');
+  const sub=document.getElementById('thrCountdownSub');
+  if(!big||!sub)return;
+  const now=Date.now();
+  if(!THR.nextHourAt||!THR.hourEndsAt){
+    big.textContent='--:--:--';big.classList.remove('live');
+    sub.textContent='no window scheduled';
+    THR.lastLive=false;
+    return;
+  }
+  const start=Date.parse(THR.nextHourAt);
+  const end=Date.parse(THR.hourEndsAt);
+  const live=now>=start&&now<end;
+  if(live){
+    big.textContent=fmtLeft(end-now);big.classList.add('live');
+    sub.textContent='treasure hour live · '+fmtWhen(start,end);
+  }else if(now>=end){
+    big.textContent='--:--:--';big.classList.remove('live');
+    sub.textContent='hour finished · next window loads automatically';
+  }else{
+    big.textContent=fmtLeft(start-now);big.classList.remove('live');
+    sub.textContent=fmtWhen(start,end);
+  }
+  // crossing into or out of the window: pull a fresh state so the odds table flips
+  if(!force&&live!==THR.lastLive){
+    fetch('/api/state').then(r=>r.json()).then(renderTreasure).catch(()=>{});
+  }
+  THR.lastLive=live;
+  // keep the "in 4d 3h" column honest without re-rendering every second
+  const bucket=Math.floor(now/60000);
+  if(force||bucket!==tickHourClock._bucket){tickHourClock._bucket=bucket;renderHourList();}
+}
+
+async function scheduleHour(){
+  const inp=document.getElementById('thrWhen');
+  if(!inp||!inp.value){toast('pick a date and time first','err');return;}
+  const when=new Date(inp.value);
+  if(!Number.isFinite(when.getTime())){toast('that date is not valid','err');return;}
+  const r=await fetch('/api/treasure-hour',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nextAt:when.toISOString(),minutes:THR.hourMinutes})}).then(x=>x.json()).catch(()=>null);
+  if(!r||r.error){toast('could not save the schedule','err');return;}
+  const d=await fetch('/api/state').then(x=>x.json()).catch(()=>null);
+  if(d)applyHourState(d);
+  toast('Treasure Hour override armed — odds flip automatically','ok');
+}
+async function clearHour(){
+  const r=await fetch('/api/treasure-hour',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nextAt:null})}).then(x=>x.json()).catch(()=>null);
+  const inp=document.getElementById('thrWhen');
+  if(inp)inp.value='';
+  const d=await fetch('/api/state').then(x=>x.json()).catch(()=>null);
+  if(d)applyHourState(d);
+  toast('override cleared — weekly schedule back','ok');
+}
+function onHourLen(el){
+  THR.hourMinutes=parseInt(el.value);
+  document.getElementById('thrLenVal').textContent=THR.hourMinutes+' min';
+  if(THR.hourSource==='override'&&THR.nextHourAt){
+    fetch('/api/treasure-hour',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nextAt:THR.nextHourAt,minutes:THR.hourMinutes})}).catch(()=>{});
+  }
+  tickHourClock(true);
+}
+setInterval(()=>tickHourClock(false),1000);
+fetch('/api/state').then(r=>r.json()).then(d=>{applyHourState(d);}).catch(()=>{});
+
+const SLIDER_DEBOUNCE={};function onSlider(key,el){
+  const val=(key==='sfxOn')?el.checked:(key==='sfxVol'?parseInt(el.value):parseInt(el.value));
+  if(key==='sfxVol'){document.getElementById('sfxVolVal').textContent=val+'%';}
+  if(key==='tapMin'){document.getElementById('tapMinVal').textContent=val+' ms';}
+  if(key==='tapMax'){document.getElementById('tapMaxVal').textContent=val+' ms';}
+  if(key==='holdMs'){document.getElementById('holdMsVal').textContent=val+' ms';}
+  if(key==='dedupeMs'){document.getElementById('dedupeVal').textContent=val+' ms';}
+  CFG[key]=val;
+  clearTimeout(SLIDER_DEBOUNCE[key]);
+  SLIDER_DEBOUNCE[key]=setTimeout(()=>{window.electronAPI.updateConfig({[key]:val}).then(c=>{CFG={...CFG,...c};});},250);
+}
+// fix label ids for sliders whose val element is key+'Val'
+function sliderLabelId(key){return key+'Val';}
+
+function toast(msg,cls){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+(cls||'');
+  clearTimeout(t._h);t._h=setTimeout(()=>{t.className='';},2200);
+}
+
+// ── SSE state sync ──
+let lastTotal=0,lastToday=0;
+const COLORS=['#FFD700','#FF6600','#FF3300','#FFF700','#FF9900','#FFCC00'];
+const sfxAudio=new Audio('/assets/chest-open.mp3');sfxAudio.preload='auto';
+
+function playSfx(){
+  if(!CFG.sfxOn)return;
+  try{sfxAudio.volume=Math.min(1,CFG.sfxVol/100);sfxAudio.currentTime=0;sfxAudio.play().catch(()=>{});}catch(e){}
+}
+
+function triggerFX(numEl,chestEl,flashEl,starEl,partEl){
+  numEl.classList.remove('bump');void numEl.offsetWidth;numEl.classList.add('bump');
+  numEl.addEventListener('animationend',()=>numEl.classList.remove('bump'),{once:true});
+  chestEl.classList.remove('open');void chestEl.offsetWidth;chestEl.classList.add('open');
+  chestEl.addEventListener('animationend',()=>chestEl.classList.remove('open'),{once:true});
+  flashEl.classList.remove('fire');void flashEl.offsetWidth;flashEl.classList.add('fire');
+  flashEl.addEventListener('animationend',()=>flashEl.classList.remove('fire'),{once:true});
+  starEl.classList.remove('fire');void starEl.offsetWidth;starEl.classList.add('fire');
+  starEl.addEventListener('animationend',()=>starEl.classList.remove('fire'),{once:true});
+  spawnP(partEl);
+}
+
+function spawnP(c){
+  c.innerHTML='';
+  for(let i=0;i<14;i++){
+    const deg=(i/14)*360+Math.random()*20,rad=deg*Math.PI/180,dist=50+Math.random()*45;
+    const p=document.createElement('div');p.className='particle';
+    p.style.background=COLORS[i%COLORS.length];
+    const sz=(5+Math.random()*5)+'px';p.style.width=sz;p.style.height=sz;
+    p.style.setProperty('--tx',(Math.cos(rad)*dist)+'px');
+    p.style.setProperty('--ty',(Math.sin(rad)*dist)+'px');
+    p.style.animationDelay=(i*15)+'ms';
+    c.appendChild(p);requestAnimationFrame(()=>p.classList.add('go'));
+  }
+}
+
+function updateCounters(d){
+  const nT=document.getElementById('numTotal'),nTo=document.getElementById('numToday');
+  if(d.total>lastTotal){triggerFX(nT,document.getElementById('chestImgTotal'),document.getElementById('flashTotal'),document.getElementById('starTotal'),document.getElementById('partTotal'));playSfx();}
+  if(d.today>lastToday) triggerFX(nTo,document.getElementById('chestImgToday'),document.getElementById('flashToday'),document.getElementById('starToday'),document.getElementById('partToday'));
+  nT.textContent=d.total; nTo.textContent=d.today;
+  fitNum(nT); fitNum(nTo);
+  lastTotal=d.total; lastToday=d.today;
+}
+
+// the counter cards are fixed width — long totals shrink instead of clipping
+function fitNum(el){
+  if(!el)return;
+  const n=(el.textContent||'').length;
+  el.style.fontSize=n>6?'26px':n>5?'32px':n>4?'40px':'54px';
+}
+
+// ══════════════════════════════════════════════════════════
+// TREASURE HUNT — Epic's official Pirate Treasure odds
+// ══════════════════════════════════════════════════════════
+function fmtN(n){return n.toLocaleString('en-US');}
+
+function renderTreasure(d){
+  const rate=document.getElementById('thrRate');
+  if(rate)rate.textContent=(d.chestsHour||0)+' chests/hr';
+  const hour=!!d.treasureHour;
+  const sw=document.getElementById('thrHourSwitch');
+  // the switch owns the manual flag only; a scheduled window can be live on its own
+  if(sw){const m=(typeof d.manualHour==='boolean')?d.manualHour:hour;if(sw.checked!==m)sw.checked=m;}
+  const dot=document.getElementById('thrHourDot');
+  dot.className='dot'+(hour?' detected':' on');
+  const badge=document.getElementById('thrBadge');
+  badge.style.display=hour?'inline-block':'none';
+  badge.textContent='Treasure Hour — boosted odds';
+  const rows=document.getElementById('thrRows');
+  if(!rows)return;
+  rows.innerHTML='';
+  for(const it of (d.treasure||[])){
+    const boosted=hour&&it.odds!==it.base;
+    const row=document.createElement('div');
+    row.className='thr-row'+(it.lastFound&&Date.now()-new Date(it.lastFound).getTime()<3600000?' found-recent':'');
+    const since=fmtN(it.chestsSince);
+    const left=it.expectedLeft;
+    const leftTxt=left<=0?'overdue by '+fmtN(-left):fmtN(left)+' to go';
+    const gotHtml=(it.foundCount||0)>0?'<br><span class="thr-got">×'+it.foundCount+' found</span>':'';
+    row.innerHTML=
+      '<div class="thr-name">'+it.name+
+        '<small>1 in '+fmtN(it.base)+(boosted?' → <span style="color:var(--red)">'+fmtN(it.odds)+'</span>':'')+'</small>'+
+      '</div>'+
+      '<div class="thr-odds'+(boosted?' boosted':'')+'">1 in '+fmtN(it.odds)+'</div>'+
+      '<div class="thr-since">'+since+' dry<br><b>'+leftTxt+'</b>'+gotHtml+'</div>'+
+      '<button class="thr-btn" onclick="markFound(\''+it.id+'\')">Found</button>';
+    rows.appendChild(row);
+  }
+}
+
+async function toggleTreasureHour(on){
+  const c=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({treasureHour:on})}).then(r=>r.json());
+  document.getElementById('thrHourSwitch').checked=c.treasureHour;
+  toast(c.treasureHour?'Treasure Hour ON — boosted odds live':'Treasure Hour off','ok');
+}
+
+async function markFound(id){
+  await fetch('/api/treasure',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({item:id})});
+}
+
+async function clearFinds(){  if(!confirm('Clear every found treasure item? The Items overlay resets to empty.')) return;
+  await fetch('/api/treasure/reset',{method:'POST'});
+  toast('found history cleared','ok');
+}
+
+function showJackpot(name,sub){
+  const jp=document.getElementById('jackpot');
+  document.getElementById('jpTitle').textContent=name.toUpperCase();
+  document.getElementById('jpSub').textContent=sub;
+  const conf=document.getElementById('jpConfetti');
+  conf.innerHTML='';
+  const colors=['#FFD700','#FF8C00','#FF4500','#FFF200','#FFB300','#3ddc84','#ff4655'];
+  for(let i=0;i<80;i++){
+    const p=document.createElement('div');p.className='jp-conf';
+    p.style.left=Math.random()*100+'%';
+    p.style.width=(5+Math.random()*6)+'px';p.style.height=(8+Math.random()*8)+'px';
+    p.style.background=colors[i%colors.length];
+    p.style.animationDuration=(2.2+Math.random()*2)+'s';
+    p.style.animationDelay=(Math.random()*0.8)+'s';
+    conf.appendChild(p);
+  }
+  jp.classList.add('show');
+  if(CFG.sfxOn){try{const a=new Audio('/assets/chest-open.mp3');a.volume=Math.min(1,(CFG.sfxVol/100)+0.3);a.play().catch(()=>{});}catch(e){}}
+  setTimeout(()=>jp.classList.remove('show'),4500);
+}
+
+const es=new EventSource('/events');
+es.addEventListener('state',e=>{
+  const d=JSON.parse(e.data);
+  updateCounters(d);
+  renderTreasure(d);
+  applyHourState(d);
+});
+es.addEventListener('treasure',e=>{
+  const d=JSON.parse(e.data);
+  showJackpot('YOU FOUND '+d.name,d.repeatable?'Repeatable — it can happen again':'Chest logged — keep hunting');
+});
+es.addEventListener('replay',e=>{
+  const m=JSON.parse(e.data);
+  if(m.ok) showJackpot(`REPLAY: ${m.ownChests} CHESTS`,`${m.ownBroken} broken with pickaxe · +${m.added} added`);
+  loadReplays();
+});
+es.addEventListener('tunnel',e=>{
+  const t=JSON.parse(e.data);
+  renderTunnel({...t,on:t.on||t.starting});
+});
+
+// ── replay stats ──
+async function loadReplays(){
+  try{
+    const st=await(await fetch('/api/replays')).json();
+    const dot=document.getElementById('replayDot'), badge=document.getElementById('replayBadge'), status=document.getElementById('replayStatus');
+    if(st.watching){ dot.className='dot on'; badge.textContent='watching'; badge.classList.add('gold'); status.textContent='Watching Fortnite\\Saved\\Demos — parses after each match ends'; }
+    else{ dot.className='dot error'; badge.textContent='off'; status.textContent='Replay folder not found — play with Replays ON in Fortnite settings'; }
+    document.getElementById('rpOwn').textContent=st.totalOwn||0;
+    document.getElementById('rpBroken').textContent=st.totalOwnBroken||0;
+    document.getElementById('rpMatches').textContent=st.matches||0;
+    // failed parses re-queue on a retry ladder — flag the tab while any is red
+    const fails=(st.history||[]).filter(m=>m.ok===false).length;
+    const tabDot=document.getElementById('dotReplays');
+    if(tabDot)tabDot.style.display=fails?'block':'none';
+    const list=document.getElementById('replayList');
+    if(!st.history||!st.history.length){ list.innerHTML=''; return; }
+    // successful parses read as the history; failures are re-parsed on a retry
+    // ladder and would otherwise crowd the newest-of list every retry tick
+    const rows=(st.history||[]).filter(m=>m.ok).slice(0,5).map(m=>{
+      const t=new Date(m.parsedAt), when=`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+      const pl=(m.playlist||'').replace('Playlist_','');
+      return `<div class="replay-row"><span class="rp-when">${when}</span><span class="rp-pl">${pl}</span><span class="rp-val"><b>${m.ownChests}</b> opened · ${m.ownBroken} pickaxe-broken${m.mateChests?` · mates ${m.mateChests}`:''}</span></div>`;
+    }).join('');
+    const failRow=fails?`<div class="replay-row fail"><span class="rp-when">!</span><span class="rp-pl">${fails} failed</span><span class="rp-val">unreadable replays stay red — the rest retry every 45s</span></div>`:'';
+    list.innerHTML=rows+failRow;
+  }catch(e){}
+}
+loadReplays();
+setInterval(loadReplays,30000);
+
+// ── TikTok bridge (cloudflared tunnel) ──
+function renderTunnel(t){
+  const dot=document.getElementById('ttDot'), badge=document.getElementById('ttBadge'), status=document.getElementById('ttStatus');
+  const links=document.getElementById('ttLinks'), sw=document.getElementById('ttSwitch');
+  if(t.on&&t.url){
+    dot.className='dot on'; badge.textContent='ready'; badge.classList.add('gold');
+    status.textContent='Public link live — copy it into TikTok Live Studio › Add link';
+    document.getElementById('ttUrlTotal').textContent=t.url+'/overlay/total';
+    document.getElementById('ttUrlToday').textContent=t.url+'/overlay/today';
+    document.getElementById('ttUrlTreasure').textContent=t.url+'/overlay/treasure';
+    document.getElementById('ttUrlItems').textContent=t.url+'/overlay/items';
+    document.getElementById('ttUrlWeek').textContent=t.url+'/overlay/week';
+    links.style.display='block';
+  }else if(t.on||t.starting){
+    dot.className='dot detected'; badge.textContent=t.downloading?'setup':'starting'; badge.classList.remove('gold');
+    status.textContent=t.downloading
+      ? 'Downloading Cloudflare tunnel helper (one time, ~55 MB)…'
+      : 'Starting Cloudflare tunnel — link lands here in a few seconds…';
+    links.style.display='none';
+  }else{
+    dot.className='dot error'; badge.textContent='off'; badge.classList.remove('gold');
+    status.textContent=t.error||'Bridge off — flip it on for a TikTok-ready link';
+    links.style.display='none';
+  }
+}
+async function onTunnel(on){
+  renderTunnel(on?{on:true,starting:true}:{on:false});
+  try{ const t=await window.electronAPI.tunnelToggle(on); renderTunnel(t); }catch(e){}
+}
+(async()=>{ try{ renderTunnel(await window.electronAPI.tunnelState()); }catch(e){} })();
+try{ window.electronAPI.onTunnelUrl((url)=>renderTunnel({on:true,url})); }catch(e){}
+// live bridge state: starting / downloading / error / off, not just the URL
+try{ window.electronAPI.onTunnelState((s)=>renderTunnel(s)); }catch(e){}
+
+// ── API helpers ──
+async function doBump(){await fetch('/api/bump',{method:'POST'});}
+async function setField(field,inputId,confId){
+  const v=parseInt(document.getElementById(inputId).value);
+  if(isNaN(v)||v<0)return;
+  await fetch('/api/set',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({field,value:v})});
+  document.getElementById(inputId).value='';flashConf(confId);
+}
+async function doAdj(){
+  const v=parseInt(document.getElementById('iAdj').value);
+  if(isNaN(v))return;
+  await fetch('/api/adjust',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:v})});
+  document.getElementById('iAdj').value='';flashConf('cAdj');
+}
+async function doReset(field){await fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({field})});}
+function flashConf(id){const el=document.getElementById(id);el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1500);}
+
+// ── copy URL ──
+function copyUrl(id,btn){
+  navigator.clipboard.writeText(document.getElementById(id).textContent);
+  btn.textContent='Copied';btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},1500);
+}
+// click a size chip → "500x148" lands on the clipboard, ready for the
+// OBS custom-resolution box or TikTok Live Studio's source width/height
+function copySize(el){
+  const raw=el.textContent.trim().replace(/\s/g,'');
+  navigator.clipboard.writeText(raw.replace('×','x')).catch(()=>{});
+  const keep=el.textContent;
+  el.textContent='copied';
+  setTimeout(()=>{el.textContent=keep;},1200);
+}
+
+// opens the overlay in an always-on-top window at its OBS size
+function previewOverlay(type){
+  try{ window.electronAPI.openOverlay(type); }
+  catch(e){ toast('preview is only available in the desktop app','err'); }
+}
+
+// ── test sound ──
+function testSfx(){const keep=CFG.sfxOn;CFG.sfxOn=true;playSfx();CFG.sfxOn=keep;}
+
+// ══════════════════════════════════════════════════════════
+// KEY LISTENER + KEYBIND + SMART MODE
+// ══════════════════════════════════════════════════════════
+let hookOn=true,captureMode=false;
+
+function setHookBtn(on){
+  hookOn=on;
+  document.getElementById('listenerSwitch').checked=on;
+  const dot=document.getElementById('keyDot');
+  if(!on){dot.className='';document.getElementById('keyStatus').innerHTML='Listener off — panel-focused mode only';document.getElementById('holdFill')&&(document.getElementById('holdFill').style.width='0%');}
+  else{dot.className='on';document.getElementById('keyStatus').innerHTML='Global listener active — press <b id="keyStatusKey">'+CFG.keyName+'</b> in game';}
+}
+async function toggleHook(on){
+  const st=await window.electronAPI.keyhookToggle(on);
+  setHookBtn(st.want);
+}
+
+function setSmartBtn(on){
+  CFG.smartMode=on;
+  document.getElementById('modeBadge').textContent=on?'Smart Tap':'Legacy Hold';
+  document.getElementById('modeBadge').className='badge '+(on?'gold':'red');
+  document.getElementById('modeNote').innerHTML=on
+    ?'<b>Smart Tap</b>: a quick key press ('+CFG.tapMin+'–'+CFG.tapMax+'ms) counts the moment you release. Longer presses are ignored, so looting menus never count. Works system-wide, listen-only.'
+    :'<b>Legacy</b>: hold the key for '+CFG.holdMs+'ms to count. Release early to cancel. Works system-wide, listen-only.';
+}
+function toggleSmart(){window.electronAPI.updateConfig({smartMode:!CFG.smartMode}).then(c=>{CFG={...CFG,...c};setSmartBtn(c.smartMode);});}
+
+function onPromptGate(on){
+  window.electronAPI.updateConfig({promptGate:on}).then(c=>{CFG={...CFG,...c};toast(c.promptGate?'Chest prompt gate ON — E counts only near chests':'Prompt gate OFF — every E tap counts','ok');});
+}
+
+// keybind capture
+async function captureKey(){
+  if(captureMode){captureMode=false;document.getElementById('keyDisplay').classList.remove('listening');document.getElementById('keyCapBtn').textContent='Change';return;}
+  captureMode=true;
+  const d=document.getElementById('keyDisplay');
+  d.classList.add('listening');d.textContent='press a key…';
+  document.getElementById('keyCapBtn').textContent='Cancel';
+}
+document.addEventListener('keydown',e=>{
+  if(captureMode){
+    e.preventDefault();e.stopPropagation();
+    if(e.key==='Escape'){captureMode=false;document.getElementById('keyDisplay').classList.remove('listening');document.getElementById('keyDisplay').textContent=CFG.keyName;document.getElementById('keyCapBtn').textContent='Change';return;}
+    const vk=e.keyCode;
+    if(vk<8||vk>254){return;}
+    window.electronAPI.updateConfig({keyVK:vk,keyName:e.key.length===1?e.key.toUpperCase():e.key}).then(c=>{
+      CFG={...CFG,...c};
+      captureMode=false;
+      const d=document.getElementById('keyDisplay');
+      d.classList.remove('listening');d.textContent=CFG.keyName;
+      document.getElementById('keyCapBtn').textContent='Change';
+      document.getElementById('keyStatus').innerHTML='Global listener active — press <b id="keyStatusKey">'+CFG.keyName+'</b> in game';
+      toast('Keybind set to '+CFG.keyName+' — listener restarted','ok');
+    });
+    return;
+  }
+  // panel-focused fallback (only when global listener is off)
+  if(hookOn)return;
+  if(e.keyCode===CFG.keyVK&&e.target.tagName!=='INPUT'&&!eDown){
+    eDown=true;holdStart=Date.now();
+    document.getElementById('keyDot').className='dot on';
+    document.getElementById('keyStatus').textContent='Holding — keep going!';
+    holdRAF=requestAnimationFrame(holdTick);
+  }
+});
+document.addEventListener('keyup',e=>{
+  if(e.keyCode===CFG.keyVK&&eDown&&!hookOn){
+    eDown=false;holdStart=null;
+    cancelAnimationFrame(holdRAF);
+    document.getElementById('keyDot').className='dot';
+    document.getElementById('keyStatus').textContent='Released early';
+    setTimeout(()=>{document.getElementById('keyStatus').innerHTML='Global listener active — press <b id="keyStatusKey">'+CFG.keyName+'</b> in game';},1500);
+  }
+});
+
+// legacy local hold tick
+const HOLD_MS=()=>CFG.holdMs;
+let holdStart=null,holdTimer=null,holdRAF=null,eDown=false;
+function holdTick(){
+  if(!eDown||holdStart===null)return;
+  const elapsed=Date.now()-holdStart;
+  if(elapsed>=HOLD_MS()){
+    document.getElementById('keyDot').className='dot detected';
+    document.getElementById('keyStatus').textContent='Counted!';
+    doBump();
+    holdStart=null;eDown=false;
+    setTimeout(()=>{
+      document.getElementById('keyDot').className='dot on';
+      document.getElementById('keyStatus').innerHTML='Global listener active — press <b id="keyStatusKey">'+CFG.keyName+'</b> in game';
+    },1200);
+    return;
+  }
+  holdRAF=requestAnimationFrame(holdTick);
+}
+
+// SSE events from main
+es.addEventListener('hook',e=>{
+  const d=JSON.parse(e.data);
+  const chip=document.getElementById('chipListenerDot'),txt=document.getElementById('chipListenerText');
+  if(d.failed){chip.className='dot error';txt.textContent='Hook failed';document.getElementById('keyDot').className='error';document.getElementById('keyStatus').textContent='Hook failed — restart the app';}
+  else if(d.on){chip.className='dot on';txt.textContent='Listener';document.getElementById('keyDot').className='on';}
+  else{chip.className='dot';txt.textContent='Listener off';}
+});
+es.addEventListener('fg',e=>{
+  const {name}=JSON.parse(e.data);
+  if(!name)return;
+  const txt=document.getElementById('chipFocusText'),chip=document.getElementById('chipFocus').querySelector('.dot');
+  if(name.toLowerCase().startsWith('fortnite')){txt.textContent='Fortnite';chip.className='dot detected';}
+  else{txt.textContent=name.length>12?name.slice(0,12)+'…':name;chip.className='dot on';}
+});
+let hookHolding=false;
+es.addEventListener('prompt',e=>{
+  const d=JSON.parse(e.data);
+  const dot=document.getElementById('promptDot'),st=document.getElementById('promptStatus');
+  if(d.failed){dot.className='dot error';st.textContent='Prompt watcher failed — counting all taps (see prompt gate)';}
+  else if(d.on){dot.className='dot detected';st.textContent='Chest prompt detected — E taps count';}
+  else{dot.className='dot'+(CFG.promptGate?'':' on');st.textContent=CFG.promptGate?'No chest prompt — E taps ignored':'Chest prompt gate off';}
+});
+es.addEventListener('hold',e=>{
+  const d=JSON.parse(e.data);
+  const dot=document.getElementById('keyDot'),st=document.getElementById('keyStatus');
+  if(!hookOn)return;
+  if(d.phase==='down'){hookHolding=true;dot.className='dot on';st.textContent='Holding — keep going!';}
+  else if(d.phase==='progress'){const f=document.getElementById('holdFill');f&&(f.style.width=d.pct+'%');}
+  else if(d.phase==='counted'){
+    dot.className='dot detected';st.textContent='Counted!';
+    setTimeout(()=>{dot.className='dot on';st.innerHTML='Global listener active — press <b id="keyStatusKey">'+CFG.keyName+'</b> in game';},1200);
+  }
+  else if(d.phase==='up'){hookHolding=false;}
+});
+
+// enter on edit inputs
+[['iTotal','cTotal','total'],['iToday','cToday','today']].forEach(([inp,conf,field])=>{
+  document.getElementById(inp).addEventListener('keydown',e=>{if(e.key==='Enter')setField(field,inp,conf);});
+});
+document.getElementById('iAdj').addEventListener('keydown',e=>{if(e.key==='Enter')doAdj();});
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:transparent;display:flex;align-items:center;justify-content:center;width:500px;height:148px;overflow:hidden;font-family:'Cinzel',serif;}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Cinzel+Decorative:wght@700&display=swap');
+.panel{position:relative;width:500px;height:148px;user-select:none;}
+.scroll-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;}
+.chest-wrap{position:absolute;left:10px;top:50%;transform:translateY(-52%);width:112px;height:112px;z-index:5;pointer-events:none;}
+.chest-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(2px 4px 10px rgba(0,0,0,.6));transform-origin:center center;}
+.chest-img.open{animation:chestOpen .55s cubic-bezier(.36,.07,.19,.97) forwards;}
+@keyframes chestOpen{0%{transform:scale(1) rotate(0deg);filter:drop-shadow(2px 4px 10px rgba(0,0,0,.6));}18%{transform:scale(1.28) rotate(-10deg);filter:drop-shadow(0 0 20px rgba(255,200,0,1)) drop-shadow(0 0 8px rgba(255,80,0,.9));}35%{transform:scale(1.32) rotate(9deg);filter:drop-shadow(0 0 26px rgba(255,220,0,1)) drop-shadow(0 0 10px rgba(255,60,0,1));}55%{transform:scale(1.14) rotate(-4deg);}75%{transform:scale(1.05) rotate(2deg);}100%{transform:scale(1) rotate(0deg);filter:drop-shadow(2px 4px 10px rgba(0,0,0,.6));}}
+.content{position:absolute;left:112px;right:16px;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:2;}
+.big-num{font-weight:900;font-size:96px;line-height:1;color:#1e0d00;text-shadow:0 3px 0 #c97b00,0 5px 0 rgba(150,65,0,.45),0 1px 4px rgba(0,0,0,.4);letter-spacing:-1px;}
+.big-num.bump{animation:bigBump .42s cubic-bezier(.36,.07,.19,.97) forwards;}
+@keyframes bigBump{0%{transform:scale(1.6);color:#c41a00;text-shadow:0 0 28px rgba(255,70,0,.95),0 3px 0 #ff6600;}38%{transform:scale(.91);}62%{transform:scale(1.07);}100%{transform:scale(1);color:#1e0d00;text-shadow:0 3px 0 #c97b00,0 5px 0 rgba(150,65,0,.45);}}
+.particles{position:absolute;left:60px;top:50%;width:0;height:0;pointer-events:none;z-index:6;}
+.particle{position:absolute;border-radius:50%;opacity:0;}
+.particle.go{animation:pFly .7s ease-out forwards;}
+@keyframes pFly{0%{opacity:1;transform:translate(0,0) scale(1.3);}100%{opacity:0;transform:var(--tx) var(--ty) scale(0);}}
+.flash-overlay{position:absolute;inset:8px;border-radius:10px;pointer-events:none;opacity:0;z-index:7;border:3px solid rgba(255,195,0,.9);box-shadow:inset 0 0 22px rgba(255,150,0,.35),0 0 18px rgba(255,195,0,.4);}
+.flash-overlay.fire{animation:flashRing .45s ease-out forwards;}
+@keyframes flashRing{0%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(1.05);}}
+.starburst{position:absolute;left:108px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:6;opacity:0;font-size:26px;color:#FFD700;text-shadow:0 0 10px #ff8c00;}
+.starburst.fire{animation:sBurst .5s ease-out forwards;}
+@keyframes sBurst{0%{opacity:1;transform:translateY(-50%) scale(.3) rotate(-30deg);}45%{opacity:1;transform:translateY(-65%) scale(1.4) rotate(12deg);}100%{opacity:0;transform:translateY(-90%) scale(.9) rotate(5deg);}}
+</style>
+</head>
+<body>
+<div class="panel" id="panel">
+  <img class="scroll-bg" src="/assets/banner.png" alt=""/>
+  <div class="chest-wrap"><img class="chest-img" id="chestImg" src="/assets/chest.png" alt=""/></div>
+  <div class="content"><div class="big-num" id="num">0</div></div>
+  <div class="particles" id="parts"></div>
+  <div class="starburst" id="star">âœ¦</div>
+  <div class="flash-overlay" id="flash"></div>
+</div>
+<script>
+const COLORS=['#FFD700','#FF8C00','#FF4500','#FFF200','#FFB300','#FF6347','#FFEC6E','#FF3300'];
+const numEl=document.getElementById('num');
+let lastVal=0;
+
+function spawnParticles(){
+  const c=document.getElementById('parts');c.innerHTML='';
+  for(let i=0;i<14;i++){
+    const deg=(i/14)*360+Math.random()*20,rad=deg*Math.PI/180,dist=50+Math.random()*45;
+    const p=document.createElement('div');p.className='particle';
+    p.style.background=COLORS[i%COLORS.length];
+    const sz=(5+Math.random()*5)+'px';p.style.width=sz;p.style.height=sz;
+    p.style.setProperty('--tx',(Math.cos(rad)*dist)+'px');
+    p.style.setProperty('--ty',(Math.sin(rad)*dist)+'px');
+    p.style.animationDelay=(i*15)+'ms';
+    c.appendChild(p);requestAnimationFrame(()=>p.classList.add('go'));
+  }
+}
+
+function triggerFX(){
+  const ch=document.getElementById('chestImg'),f=document.getElementById('flash'),s=document.getElementById('star');
+  ch.classList.remove('open');void ch.offsetWidth;ch.classList.add('open');
+  ch.addEventListener('animationend',()=>ch.classList.remove('open'),{once:true});
+  f.classList.remove('fire');void f.offsetWidth;f.classList.add('fire');
+  f.addEventListener('animationend',()=>f.classList.remove('fire'),{once:true});
+  s.classList.remove('fire');void s.offsetWidth;s.classList.add('fire');
+  s.addEventListener('animationend',()=>s.classList.remove('fire'),{once:true});
+  spawnParticles();
+}
+
+function fitNum(el){
+  // numbers only — no label text, so the digits own the panel: shrink long totals
+  const n=(el.textContent||'').length;
+  el.style.fontSize = n>7?'52px' : n>6?'62px' : n>5?'74px' : n>4?'86px' : '96px';
+}
+
+function updateNum(v){
+  if(v>lastVal){ numEl.classList.remove('bump');void numEl.offsetWidth;numEl.classList.add('bump');numEl.addEventListener('animationend',()=>numEl.classList.remove('bump'),{once:true});triggerFX(); }
+  numEl.textContent=v;lastVal=v;fitNum(numEl);
+}
+
+// SSE is the instant path — but TikTok's embedded browser buffers event
+// streams, so a 2s poll fallback keeps the number alive there anyway. The
+// poll only paints when SSE has been silent, and updateNum fires the FX only
+// when the value actually grew, so the two paths never double-fire.
+let lastPushAt = 0;
+const es=new EventSource('/events');
+es.addEventListener('state',e=>{
+  lastPushAt=Date.now();
+  const d=JSON.parse(e.data);
+  updateNum(d.total);
+});
+setInterval(async()=>{
+  if(Date.now()-lastPushAt<4000) return;
+  try{
+    const d=await(await fetch('/api/state')).json();
+    updateNum(d.total);
+  }catch(e){}
+},2000);
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@600;700;800&display=swap');
+body{background:transparent;display:flex;align-items:flex-start;justify-content:center;width:420px;overflow:hidden;font-family:'Inter',system-ui,sans-serif;}
+.panel{position:relative;width:420px;border-radius:16px;overflow:hidden;padding:14px 14px 12px;
+  background:linear-gradient(165deg,rgba(20,15,6,.95),rgba(9,8,5,.97));
+  border:1px solid rgba(240,192,64,.4);
+  box-shadow:inset 0 0 40px rgba(240,192,64,.04);user-select:none;}
+.head{display:flex;align-items:baseline;gap:8px;padding:0 2px 9px;border-bottom:1px solid rgba(240,192,64,.18);}
+.head h1{font-family:'Cinzel',serif;font-size:12px;font-weight:900;letter-spacing:2.6px;text-transform:uppercase;color:#f0c040;flex:1;}
+.head .count{font-family:'Cinzel',serif;font-size:15px;font-weight:900;color:#ffe6a8;font-variant-numeric:tabular-nums;}
+.head .count small{font-family:'Inter',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.4px;color:#9a8b6a;text-transform:uppercase;margin-left:3px;}
+.rows{display:flex;flex-direction:column;gap:4px;margin-top:9px;}
+.row{display:flex;align-items:center;gap:9px;border-radius:10px;padding:5px 8px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);}
+.row.got{background:linear-gradient(90deg,rgba(240,192,64,.16),rgba(240,192,64,.03));
+  border-color:rgba(240,192,64,.5);box-shadow:0 0 14px rgba(240,192,64,.14) inset;}
+.tile{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  font-family:'Cinzel',serif;font-size:11px;font-weight:900;color:#2c1a00;
+  background:linear-gradient(160deg,#4b4b52,#2a2a30);border:1px solid rgba(255,255,255,.08);}
+.tile img{width:100%;height:100%;object-fit:contain;}
+.row.got .tile{background:linear-gradient(160deg,#ffe9a8,#e0a72c 60%,#8a5d0a);border-color:rgba(255,235,160,.6);
+  box-shadow:0 0 10px rgba(240,192,64,.45);}
+.name{flex:1;min-width:0;font-size:11px;font-weight:700;color:#8a8a92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.row.got .name{color:#ffe6a8;}
+.odds{font-size:9px;font-weight:700;color:#6d6d75;font-variant-numeric:tabular-nums;flex-shrink:0;}
+.row.got .odds{color:#c9a95e;}
+.times{font-family:'Cinzel',serif;font-size:12px;font-weight:900;color:#f0c040;flex-shrink:0;min-width:22px;text-align:right;font-variant-numeric:tabular-nums;}
+.row:not(.got) .times{color:transparent;}
+.foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:8px;
+  border-top:1px solid rgba(240,192,64,.16);font-size:8px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#8a7d5f;}
+.foot b{color:#f0c040;font-size:10px;}
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="head">
+    <h1>Treasure Found</h1>
+    <div class="count" id="gotCount">0<small>items</small></div>
+  </div>
+  <div class="rows" id="rows"></div>
+  <div class="foot">
+    <span>Chests <b id="dryBase">0</b> since last find</span>
+    <span id="hourTag">no hour</span>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const GLYPH={goldOutfit:'G',shopAccess:'S',vehicleDecal:'V',pickBack:'P',jamTrack:'J',loadingScreen:'L',gizmo:'Z'};
+let ST={treasure:[],treasureHour:false,scheduledHour:false};
+
+function fmtN(n){return (n||0).toLocaleString('en-US');}
+
+function paint(){
+  const items=ST.treasure||[];
+  const rows=$('rows');
+  rows.innerHTML=items.map(it=>{
+    const got=(it.foundCount||0)>0;
+    const times=got?('×'+(it.foundCount>1?it.foundCount:1)):'';
+    const art=it.img
+      ? '<img src="/img/treasure/'+it.img+'" alt="" onerror="this.remove()">'
+      : (GLYPH[it.id]||'?');
+    return '<div class="row'+(got?' got':'')+'">'+
+      '<div class="tile">'+art+'</div>'+
+      '<div class="name">'+it.short+'</div>'+
+      '<div class="odds">1 in '+fmtN(it.odds)+'</div>'+
+      '<div class="times">'+times+'</div>'+
+    '</div>';
+  }).join('');
+  const total=items.reduce((a,i)=>a+(i.foundCount||0),0);
+  $('gotCount').innerHTML=total+'<small>found</small>';
+  const dry=items.length?Math.min.apply(null,items.map(i=>i.chestsSince||0)):0;
+  $('dryBase').textContent=fmtN(dry);
+  const hour=ST.scheduledHour||ST.treasureHour;
+  $('hourTag').textContent=hour?'treasure hour live':'boosted odds off';
+  $('hourTag').style.color=hour?'#ff8a92':'#8a7d5f';
+}
+
+function apply(d){
+  if(!d)return;
+  ST={treasure:d.treasure||ST.treasure,treasureHour:!!d.treasureHour,scheduledHour:!!d.scheduledHour};
+  paint();
+}
+
+// SSE first, 2s poll fallback for TikTok's buffering embedded browser
+let lastPushAt=0;
+const es=new EventSource('/events');
+es.addEventListener('state',e=>{lastPushAt=Date.now();apply(JSON.parse(e.data));});
+es.addEventListener('treasure',async()=>{try{apply(await(await fetch('/api/state')).json());}catch(e){}});
+setInterval(async()=>{
+  if(Date.now()-lastPushAt<4000) return;
+  try{ apply(await(await fetch('/api/state')).json()); }catch(e){}
+},2000);
+fetch('/api/state').then(r=>r.json()).then(apply).catch(()=>{});
+</script>
+</body>
+</html>

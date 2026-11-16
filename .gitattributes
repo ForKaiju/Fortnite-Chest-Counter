@@ -1,0 +1,20 @@
+* text=auto
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.ico binary
+*.webp binary
+*.zip binary
+*.dll binary
+*.exe binary
+
+# Third-party code kept out of the language bar and the diff stats: it is not
+# ours to claim, and 302 KB of parser JS would otherwise outweigh the app.
+replay-reader/** linguist-vendored
+oodle-ooz/** linguist-vendored
+node_modules/** linguist-vendored
+
+# Docs and cached art are not source
+docs/** linguist-documentation
+*.md linguist-documentation
+assets/** linguist-generated

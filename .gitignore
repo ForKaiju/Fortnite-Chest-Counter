@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-*/
+out/
+release/
+*.zip
+*.tar.gz
+
+# Tunnel helper - downloaded on first use, never committed (55 MB)
+cloudflared.exe
+
+# Your data - every user generates their own
+counts.json
+treasure.json
+replay-history.json
+config.json
+images/
+
+# Cached prize artwork
+debug.log
+*.log
+
+# Local scratch
+devlog*.txt
+screenshots/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp
+*.tmp
+*.temp

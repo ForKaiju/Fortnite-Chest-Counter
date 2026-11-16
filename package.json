@@ -1,0 +1,45 @@
+{
+  "name": "chest-counter",
+  "productName": "Chest Counter",
+  "version": "1.1.0",
+  "description": "Fortnite chest counter with OBS and TikTok Live overlays - counts chests from replays and your interact taps, tracks Pirate Treasure odds, shows the next Treasure Hour.",
+  "main": "main.js",
+  "license": "MIT",
+  "author": "ForKaiju",
+  "homepage": "https://github.com/ForKaiju/Fortnite-Chest-Counter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForKaiju/Fortnite-Chest-Counter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ForKaiju/Fortnite-Chest-Counter/issues"
+  },
+  "keywords": [
+    "fortnite",
+    "chest-counter",
+    "overlay",
+    "tiktok",
+    "obs",
+    "electron",
+    "treasure-hour"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./build-manual.ps1",
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File ./build-release.ps1"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@electron/asar": "^3.2.10",
+    "electron": "^30.0.0",
+    "rcedit": "^5.0.2"
+  },
+  "allowScripts": {
+    "electron@30.5.1": true
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

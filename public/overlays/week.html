@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@600;700;800&display=swap');
+body{background:transparent;display:flex;align-items:flex-start;justify-content:center;width:420px;overflow:hidden;font-family:'Inter',system-ui,sans-serif;}
+.panel{position:relative;width:420px;border-radius:16px;overflow:hidden;padding:13px 14px 12px;
+  background:linear-gradient(165deg,rgba(20,15,6,.95),rgba(9,8,5,.97));
+  border:1px solid rgba(240,192,64,.4);
+  box-shadow:inset 0 0 40px rgba(240,192,64,.04);user-select:none;}
+.head{display:flex;align-items:center;gap:10px;padding-bottom:9px;border-bottom:1px solid rgba(240,192,64,.18);}
+.crew{width:52px;height:52px;border-radius:10px;object-fit:cover;object-position:top center;flex-shrink:0;
+  background:#101014;border:1px solid rgba(240,192,64,.3);}
+.meta{flex:1;min-width:0;}
+.kicker{font-size:8.5px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:#f0c040;}
+.wname{font-family:'Cinzel',serif;font-size:17px;font-weight:900;line-height:1.05;color:#ffe6a8;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 18px rgba(240,192,64,.3);}
+.wdate{font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#9a8b6a;margin-top:3px;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.item{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.img{position:relative;width:100%;aspect-ratio:1/1;border-radius:11px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 30%,#221d10,#0d0b06);
+  border:1px solid rgba(240,192,64,.22);box-shadow:inset 0 0 18px rgba(240,192,64,.06);}
+.img img{width:100%;height:100%;object-fit:contain;padding:3px;}
+.img.empty{color:#4a3f22;font-family:'Cinzel',serif;font-size:26px;font-weight:900;}
+.lab{font-size:8px;font-weight:700;line-height:1.25;color:#b3a17a;text-align:center;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lab b{display:block;font-size:7px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7d7256;margin-bottom:1px;}
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="head">
+    <img class="crew" id="crew" alt="" src=""/>
+    <div class="meta">
+      <div class="kicker" id="kicker">Treasure Hunters</div>
+      <div class="wname" id="wname">—</div>
+      <div class="wdate" id="wdate">—</div>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let ST={week:{n:null,name:null,weeks:[]}};
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function monthDay(s){return new Date(s+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});}
+
+function paint(){
+  const weeks=(ST.week&&ST.week.weeks)||[];
+  if(!weeks.length)return;
+  const cur=weeks.find(w=>w.n===ST.week.n)||weeks[0];
+  const live=cur.n===ST.week.n;
+
+  $('kicker').textContent=live?'Treasure Hunters · live now':'Treasure Hunters';
+  $('wname').textContent=cur.name||('Week '+cur.n);
+  $('wdate').textContent='Week '+cur.n+' · '+monthDay(cur.from)+' – '+monthDay(cur.to);
+  if(cur.crew){$('crew').src='/img/treasure/'+cur.crew;$('crew').style.visibility='visible';}
+  else $('crew').style.visibility='hidden';
+
+  const items=cur.items&&cur.items.length?cur.items:null;
+  $('grid').innerHTML=items
+    ? items.slice(0,6).map(it=>
+        '<div class="item">'+
+          '<div class="img"><img src="/img/treasure/'+it.img+'" alt="" onerror="this.remove()"></div>'+
+          '<div class="lab"><b>'+esc(it.type)+'</b>'+esc(it.name)+'</div>'+
+        '</div>').join('')
+    : Array.from({length:6},()=>'<div class="item"><div class="img empty">?</div><div class="lab"><b>locked</b>unlocks later</div></div>').join('');
+}
+
+function apply(d){
+  if(!d||!d.week)return;
+  ST={week:d.week};
+  paint();
+}
+
+// SSE first, 2s poll fallback for TikTok's buffering embedded browser
+let lastPushAt=0;
+const es=new EventSource('/events');
+es.addEventListener('state',e=>{lastPushAt=Date.now();apply(JSON.parse(e.data));});
+setInterval(async()=>{
+  if(Date.now()-lastPushAt<4000)return;
+  try{apply(await(await fetch('/api/state')).json());}catch(e){}
+},2000);
+fetch('/api/state').then(r=>r.json()).then(apply).catch(()=>{});
+</script>
+</body>
+</html>

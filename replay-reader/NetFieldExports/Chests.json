@@ -1,0 +1,60 @@
+{
+  "path": [
+    "/Game/Building/ActorBlueprints/Containers/Tiered_Chest_Athena.Tiered_Chest_Athena_C",
+    "/Game/Building/ActorBlueprints/Containers/AlwaysSpawn_NormalChest.AlwaysSpawn_NormalChest_C",
+    "/Game/Building/ActorBlueprints/Containers/AlwaysSpawn_RareChest.AlwaysSpawn_RareChest_C",
+    "/Game/Building/ActorBlueprints/Containers/Tiered_Chest_5_Child.Tiered_Chest_5_Child_C",
+    "/RelicChest/Gameplay/B_TieredChest_Relics.B_TieredChest_Relics_C",
+    "/Game/Athena/Items/ForagedItems/BuriedChest/B_Athena_BuriedChest_Chest.B_Athena_BuriedChest_Chest_C",
+    "/DelilahDynamicLevels/Gameplay/BGA_LootCannon_StandardChest_Pirate.BGA_LootCannon_StandardChest_Pirate_C",
+    "/ExtractionPointGameplay/Gameplay/BGA_ExtractionPointGameplay_Chest.BGA_ExtractionPointGameplay_Chest_C"
+  ],
+  "customExportName": "Chests",
+  "deferUnknownHandles": true,
+  "parseLevel": 2,
+  "exportGroup": "mapData",
+  "exportName": "chests",
+  "exportType": "array",
+  "staticActorIds": [
+    "Tiered_Chest_Athena",
+    "AlwaysSpawn_NormalChest",
+    "AlwaysSpawn_RareChest",
+    "Tiered_Chest_5_Child",
+    "B_TieredChest_Relics",
+    "B_Athena_BuriedChest_Chest",
+    "BGA_LootCannon_StandardChest_Pirate",
+    "BGA_ExtractionPointGameplay_Chest"
+  ],
+  "properties": {
+    "bHidden": {
+      "name": "bHidden",
+      "type": "boolean",
+      "parseFunction": "readBit",
+      "parseType": "default"
+    },
+    "bAlreadySearched": {
+      "name": "bAlreadySearched",
+      "type": "boolean",
+      "parseFunction": "readBit",
+      "parseType": "default"
+    },
+    "ReplicatedLootTier": {
+      "name": "ReplicatedLootTier",
+      "type": "int",
+      "parseFunction": "readInt32",
+      "parseType": "default"
+    },
+    "SearchingPawn": {
+      "name": "SearchingPawn",
+      "type": "uint",
+      "parseFunction": "readIntPacked",
+      "parseType": "default"
+    },
+    "bDestroyed": {
+      "name": "bDestroyed",
+      "type": "boolean",
+      "parseFunction": "readBit",
+      "parseType": "default"
+    }
+  }
+}
