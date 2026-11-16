@@ -30,6 +30,9 @@ All notable changes to Chest Counter are documented here.
 - `desktopCapturer` and the `get-screen-source` IPC bridge that existed only to feed those detectors.
 
 ### Fixed
+- **Every toggle switch in the panel now responds to a mouse click.** The checkbox was zero-sized with the decorative track layered on top, so clicks landed on an inert element and nothing toggled — the switch looked live and did nothing. Applies to Listener, Chest prompt, Count Sound, Treasure Hour and the TikTok bridge.
+- TikTok bridge state now reaches the panel as it happens: downloading, starting, live, error and off. Previously only a successful URL was forwarded, so a failed start sat on "Starting…" with no explanation.
+- Switching the bridge off no longer reports "tunnel failed to start" — a deliberate stop is a clean shutdown, not a crash.
 - Replay audit no longer double-counts when a match started before the app was opened.
 - Week boundaries land on the item-shop reset instead of local midnight.
 
