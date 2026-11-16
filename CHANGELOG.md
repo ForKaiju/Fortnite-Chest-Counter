@@ -2,7 +2,7 @@
 
 All notable changes to Chest Counter are documented here.
 
-## [1.0.1] - 2026-11-16
+## [1.1.0] - 2026-11-16
 
 ### Added
 - **Real Treasure Hour schedule** — the weekly cadence (Saturday 21:00–23:00 UTC, Sunday 02:00–04:00 UTC) is computed locally. The panel shows a countdown, the next four windows with LIVE / NEXT / SOON tags, and the boosted odds flip on their own.
