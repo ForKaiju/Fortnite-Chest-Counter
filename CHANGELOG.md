@@ -19,6 +19,7 @@ All notable changes to Chest Counter are documented here.
 - Build is slimmer: English locale pack only, stock Electron starter app dropped, prize/page artwork recompressed (5.3 MB → 0.98 MB).
 - Release zip is written with the smallest deflate level available.
 - `cloudflared.exe` is no longer shipped by default — it downloads on first tunnel start. `build-manual.ps1 -Full` builds the offline variant.
+- Repository documentation restructured: screenshots live in `docs/` under semantic names (`home`, `chances`, `treasures`, `matches`, `overlay`), the README carries badges, overlay sizes, odds and a FAQ, and the issue templates are GitHub issue forms.
 
 ### Security
 - Server binds `127.0.0.1` only.

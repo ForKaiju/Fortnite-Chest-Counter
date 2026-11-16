@@ -10,7 +10,7 @@
 
 <img src="docs/overlay.png" alt="Total chests overlay" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-items.png" alt="Treasure items overlay" height="280">
 
-[**⬇ Download Chest-Counter-1.0.1-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
+[**⬇ Download Chest-Counter-1.1.0-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
 
 </div>
 
@@ -39,7 +39,7 @@ Because the replay is only complete when the match ends, the post-match audit la
 
 ## Getting started
 
-1. Download **[`Chest-Counter-1.0.1-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
+1. Download **[`Chest-Counter-1.1.0-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
 2. Turn on replays in Fortnite (see above).
 3. Run **`Chest Counter.exe`**.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
@@ -175,8 +175,29 @@ npm run release    # release/Chest-Counter-<version>-win-x64.zip
 
 The default build is slim: English locale only, no tunnel binary. `build-manual.ps1 -Full` ships `cloudflared.exe` so the bridge works offline. The GitHub Actions workflow builds on every tag and attaches the zip to the release with the text of [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
-## License and credits
+## License
 
-[MIT](LICENSE). Replay parsing is based on [replay-reader](https://github.com/xNocken/replay-reader) by xNocken (MIT), vendored in `replay-reader/`: see [NOTICE.md](NOTICE.md). Oodle decompression via `oodle-ooz/`. The TikTok bridge runs [cloudflared](https://github.com/cloudflare/cloudflared) by Cloudflare (Apache 2.0), downloaded at runtime and not redistributed. Prize artwork and the treasure schedule come from [fortnite.bot](https://fortnite.bot). Built with [Electron](https://www.electronjs.org/) and [Express](https://expressjs.com/).
+[MIT](LICENSE) — use it, fork it, ship it. Just keep the copyright notice.
+
+## Credits
+
+Built by [ForKaiju](https://github.com/ForKaiju), and this list is deliberately honest about the rest:
+
+| Who | What they did |
+|---|---|
+| [ForKaiju](https://github.com/ForKaiju) | The idea, the requirements, every decision that shaped the app, and all the testing against a real client. |
+| **Claude** (Anthropic) | Pair-programmed the application with ForKaiju — the Electron shell, the server, the replay audit, the bridges, and the writing of this documentation. |
+| **ollie** (OpenCode agent) | Ran those pair sessions: wrote and reviewed the code, verified the toggles and the bridge with real input events, packaged and audited the release zip. |
+
+Third-party, all of it vendored or downloaded rather than reimplemented:
+
+| Project | Used for | License |
+|---|---|---|
+| [replay-reader](https://github.com/xNocken/replay-reader) by xNocken | Fortnite replay parsing, vendored in `replay-reader/` | MIT |
+| `oodle-ooz/` | Oodle decompression | see `oodle-ooz/LICENSE` |
+| [cloudflared](https://github.com/cloudflare/cloudflared) by Cloudflare | The TikTok tunnel, downloaded at runtime and never redistributed | Apache 2.0 |
+| [Electron](https://www.electronjs.org/) / [Express](https://expressjs.com/) | Desktop shell and local server | MIT |
+
+Prize artwork and the treasure schedule come from [fortnite.bot](https://fortnite.bot). Full third-party text is in [NOTICE.md](NOTICE.md).
 
 This project is not affiliated with, endorsed by or sponsored by Epic Games. Fortnite is a trademark of Epic Games, Inc.

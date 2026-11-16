@@ -1,8 +1,8 @@
-**Download `Chest-Counter-1.0.1-win-x64.zip` below, unzip it anywhere writable and run `Chest Counter.exe`.** Nothing to install. Your totals, settings and replay history are kept when you upgrade.
+**Download `Chest-Counter-1.1.0-win-x64.zip` below, unzip it anywhere writable and run `Chest Counter.exe`.** Nothing to install. Your totals, settings and replay history are kept when you upgrade.
 
 > **Turn replays on in Fortnite first**: *Settings → Game → Replays → Record Replays: On*. The app only reads those replay files — no access to the game's memory, no injection, no input automation. Counting is your interact tap, gated by the on-screen chest prompt.
 
-**What's new in 1.0.1**
+**What's new in 1.1.0**
 - **The real next Treasure Hour**: the countdown is the actual window — Saturday 21:00–23:00 UTC and Sunday 02:00–04:00 UTC — not a schedule you fill in. The panel lists the next four with LIVE / NEXT / SOON tags, and the boosted odds switch on by themselves
 - **Weekly prize art**: every Treasure Hunters week shows its crew portrait and six prize tiles, and the artwork moves on when the week flips at Epic's Sunday 07:00 UTC reset
 - **New `Week` overlay** (420 × 410) for streams, plus artwork thumbnails on the items overlay
