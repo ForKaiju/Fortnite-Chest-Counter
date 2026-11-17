@@ -10,7 +10,7 @@
 
 <img src="docs/overlay.png" alt="Total chests overlay" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-items.png" alt="Treasure items overlay" height="280">
 
-[**⬇ Download Chest-Counter-1.2.0-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
+[**⬇ Download Chest-Counter-1.2.1-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
 
 </div>
 
@@ -40,7 +40,7 @@ Because the replay is only complete when the match ends, the post-match audit la
 
 ## Getting started
 
-1. Download **[`Chest-Counter-1.2.0-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
+1. Download **[`Chest-Counter-1.2.1-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
 2. Turn on replays in Fortnite (see above).
 3. Run **`Chest Counter.exe`**.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
@@ -57,7 +57,7 @@ Because the replay is only complete when the match ends, the post-match audit la
 Five tabs: **Live**, **Treasure**, **Replays**, **Overlays** and **Settings**. The header shows whether the listener is on and which app has focus.
 
 - **Live**: total chests, today's chests, chest detection state, and the count sound.
-- **Treasure**: chests since your last drop for every reward tier, the next Treasure Hour with a countdown, and the weekly prize crews. **Auto Found** marks a prize the moment its reveal banner names it.
+- **Treasure**: chests since your last drop for every reward tier, the next Treasure Hour with a countdown, and the weekly prize crews. **Read Prize Banner** marks a tier the moment the reveal names it.
 - **Replays**: every finished match, parsed, with the live-versus-replay audit.
 - **Overlays**: the browser-source URLs, their exact pixel sizes, and the TikTok bridge.
 - **Settings**: manual control of the counters.
@@ -126,9 +126,9 @@ Chests are tallied since your last drop for each tier, using Epic's published pe
 
 **Weekly prizes** flip at Epic's Sunday reset (07:00 UTC). Prize artwork is fetched once from the public CDN and cached in `%APPDATA%\Chest Counter\images` — no Epic assets are redistributed with this app.
 
-**Auto Found** reads the reveal banner. Winning a prize is decided on Epic's servers, so nothing on your disk — not the replay, not the game log — ever records it, and the reveal banner is the only local evidence there is. With the switch on (the default) the app watches that banner, matches the text against the live week's prize names, and marks the tier itself: chests-since drops to zero, the row turns gold, the found count goes up and the **TREASURE FOUND** banner plays. A prize that was already detected cannot fire again inside a minute. Anything the reader misses is still one click away on **Found**.
+**Read Prize Banner** reads the reveal on screen. Winning a prize is decided on Epic's servers, so nothing on your disk — not the replay, not the game log — ever records it, and the reveal banner is the only local evidence there is. With the switch on (the default) the app watches that banner, matches the text against the live week's prize names, and marks the tier itself: chests-since drops to zero, the row turns gold, the found count goes up and the **TREASURE FOUND** banner plays. A prize that was already detected cannot fire again inside a minute. Anything the reader misses is still one click away on **Found**.
 
-The watched region is stored in `%APPDATA%\Chest Counter\config.json` as `prizeRegion` (`x`, `y`, `w`, `h` as fractions of the screen, default centred `0.15 / 0.18 / 0.70 / 0.64`). Change it if you run a HUD layout the banner sits outside of.
+The watched region is stored in `%APPDATA%\Chest Counter\config.json` as `prizeRegion` (`x`, `y`, `w`, `h` as fractions of the screen, default centred `0.24 / 0.28 / 0.52 / 0.44`). Change it if you run a HUD layout the banner sits outside of.
 
 ## Your data
 

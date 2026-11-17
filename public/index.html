@@ -390,14 +390,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="row">
     <div class="status-pill">
       <div class="dot" id="thrAutoDot"></div>
-      <span class="status-text"><b>Auto Found</b> — reads the prize banner on screen</span>
+      <span class="status-text"><b>Read Prize Banner</b> — marks the tier the reveal names</span>
     </div>
     <div class="switch"><input type="checkbox" id="thrAutoSwitch" onchange="toggleAutoFound(this.checked)"><span class="track"><span class="knob"></span></span></div>
   </div>
 
   <div class="thr-rows" id="thrRows"></div>
 
-  <div class="note">Per-chest odds from Epic's official Pirate Treasure rates. Counters track chests since your last find of each item — with <b>Auto Found</b> on, the app reads the prize reveal banner and marks the prize itself; the <b>Found</b> button is always there for anything the reader misses. Negative "expected" means you're statistically overdue.</div>
+  <div class="note">Per-chest odds from Epic's official Pirate Treasure rates. Counters track chests since your last find of each item — with <b>Read Prize Banner</b> on, the app reads the reveal on screen and marks the tier itself; the <b>Found</b> button is always there for anything the reader misses. Negative "expected" means you're statistically overdue.</div>
   <div class="row" style="margin-top:10px;">
     <button class="btn small" onclick="clearFinds()">Clear Finds</button>
     <span class="hint" style="margin-left:auto;">feeds the Items overlay</span>
@@ -964,7 +964,7 @@ async function toggleAutoFound(on){
   if(sw)sw.checked=!!c.autoFound;
   const dot=document.getElementById('thrAutoDot');
   if(dot)dot.className='dot'+(c.autoFound?' on':'');
-  toast(c.autoFound?'Auto Found ON — the reveal banner marks itself':'Auto Found off — mark prizes by hand','ok');
+  toast(c.autoFound?'Prize banner reader ON — the reveal marks its tier':'Prize banner reader off — mark prizes by hand','ok');
 }
 
 async function clearFinds(){  if(!confirm('Clear every found treasure item? The Items overlay resets to empty.')) return;

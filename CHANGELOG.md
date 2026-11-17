@@ -2,6 +2,13 @@
 
 All notable changes to Chest Counter are documented here.
 
+## [1.2.1] - 2026-11-17
+
+### Changed
+- **The switch is called "Read Prize Banner"** on the Treasure tab. Same behaviour, same `autoFound` key in `treasure.json` — the label now says what the feature is: reading the reveal, not automating anything. Toasts follow suit.
+- **Tighter default banner crop**: `0.24 / 0.28 / 0.52 / 0.44` instead of `0.15 / 0.18 / 0.70 / 0.64`. The reader now watches the centred band the reveal actually occupies, so the pass never sweeps chat, party UI or the minimap. Smaller crop, less to explain, same detection.
+- An existing `prizeRegion` in `config.json` is respected — the new default applies to fresh installs and to configs that have never stored a region. Delete the key (or the file) to pick up the tighter band.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added

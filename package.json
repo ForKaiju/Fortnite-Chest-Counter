@@ -1,7 +1,7 @@
 {
   "name": "chest-counter",
   "productName": "Chest Counter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Fortnite chest counter with OBS and TikTok Live overlays - counts chests from replays and your interact taps, tracks Pirate Treasure odds, shows the next Treasure Hour.",
   "main": "main.js",
   "license": "MIT",

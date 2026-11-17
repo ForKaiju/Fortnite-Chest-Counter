@@ -15,10 +15,10 @@ param(
     [double]$CropY = 0.50,
     [double]$CropW = 0.44,
     [double]$CropH = 0.28,
-    [double]$PrizeX = 0.15,       # reveal-banner crop, generously wide — the
-    [double]$PrizeY = 0.18,       # banner is centred and covers a lot of screen
-    [double]$PrizeW = 0.70,
-    [double]$PrizeH = 0.64,
+    [double]$PrizeX = 0.24,       # reveal-banner crop — the centred band the
+    [double]$PrizeY = 0.28,       # banner actually occupies, kept tight so the
+    [double]$PrizeW = 0.52,       # reader never sweeps chat or party UI
+    [double]$PrizeH = 0.44,
     [int]$IntervalMs = 250,
     [int]$MaxFrameW = 1000,       # downscale cap so OCR stays fast on 4K
     [int]$PrizeEvery = 4,         # prize OCR every Nth tick (~1 s at 250 ms)

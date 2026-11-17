@@ -131,8 +131,9 @@ const CONFIG_DEFAULTS = {
   dedupeMs: 900,  // merge duplicate signals (audio + key) on one chest
   sfxOn: false, sfxVol: 60,
   promptGate: true, // count E only when the on-screen chest prompt is live
-  // where the prize reveal banner lands, as fractions of the virtual screen
-  prizeRegion: { x: 0.15, y: 0.18, w: 0.70, h: 0.64 },
+  // where the prize reveal banner lands, as fractions of the virtual screen —
+  // the centred band the banner occupies, not a whole-screen sweep
+  prizeRegion: { x: 0.24, y: 0.28, w: 0.52, h: 0.44 },
   tunnelOn: false,  // TikTok bridge (cloudflared) — opt-in, it puts overlays on a public URL
 };
 function configPath() {
