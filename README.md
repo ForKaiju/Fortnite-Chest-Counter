@@ -192,7 +192,7 @@ Built by [ForKaiju](https://github.com/ForKaiju), and this list is deliberately 
 |---|---|
 | [ForKaiju](https://github.com/ForKaiju) | The idea, the requirements, every decision that shaped the app, and all the testing against a real client. |
 | **Claude** (Anthropic) | Pair-programmed the application with ForKaiju — the Electron shell, the server, the replay audit, the bridges, and the writing of this documentation. |
-| **ollie** (OpenCode agent) | Ran those pair sessions: wrote and reviewed the code, verified the toggles and the bridge with real input events, packaged and audited the release zip. |
+| **Deepseek** (OpenCode agent) | Ran those pair sessions: wrote and reviewed the code, verified the toggles and the bridge with real input events, packaged and audited the release zip. |
 
 Third-party, all of it vendored or downloaded rather than reimplemented:
 
