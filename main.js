@@ -73,6 +73,9 @@ function handleProbeLine(line) {
   } else if (line === 'OCRFAIL') {
     promptUp = false;
     notify('prompt', { up: false, failed: true });
+  } else if (line.startsWith('PRIZE:')) {
+    // reveal-banner text — the server owns the weekly prize names and decides
+    postTreasureAuto(line.slice(6));
   } else if (line === 'PROMPT:1') {
     promptOn = true;
     lastPromptAt = Date.now();
@@ -86,9 +89,12 @@ function handleProbeLine(line) {
 function spawnProbe() {
   if (probeProc) return;
   const script = getResourcePath('chest-probe.ps1');
+  const r = config.prizeRegion;
   probeBuf = '';
   probeProc = spawn('powershell.exe', [
     '-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', script,
+    '-PrizeX', String(r.x), '-PrizeY', String(r.y),
+    '-PrizeW', String(r.w), '-PrizeH', String(r.h),
   ], { windowsHide: true });
   probeProc.stdout.on('data', d => {
     probeBuf += d.toString();
@@ -125,6 +131,8 @@ const CONFIG_DEFAULTS = {
   dedupeMs: 900,  // merge duplicate signals (audio + key) on one chest
   sfxOn: false, sfxVol: 60,
   promptGate: true, // count E only when the on-screen chest prompt is live
+  // where the prize reveal banner lands, as fractions of the virtual screen
+  prizeRegion: { x: 0.15, y: 0.18, w: 0.70, h: 0.64 },
   tunnelOn: false,  // TikTok bridge (cloudflared) — opt-in, it puts overlays on a public URL
 };
 function configPath() {
@@ -137,6 +145,13 @@ try {
     if (typeof stored[k] === typeof CONFIG_DEFAULTS[k]) config[k] = stored[k];
   }
 } catch (e) { /* defaults */ }
+// a stored region is only trusted when all four fractions are sane numbers
+{
+  const pr = config.prizeRegion;
+  const ok = pr && ['x', 'y', 'w', 'h'].every(k => Number.isFinite(pr[k])) &&
+    pr.w >= 0.05 && pr.w <= 1 && pr.h >= 0.05 && pr.h <= 1;
+  if (!ok) config.prizeRegion = { ...CONFIG_DEFAULTS.prizeRegion };
+}
 function saveConfig() {
   try { fs.writeFileSync(configPath(), JSON.stringify(config), 'utf8'); } catch (e) {}
 }
@@ -152,6 +167,17 @@ function notify(event, data) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ event, data }),
+  }).catch(() => {});
+}
+
+// Prize reveal text straight from the probe. The server matches it against the
+// live week's names (and its own cooldown) and stamps the Found — the main
+// process never guesses which prize a string is.
+function postTreasureAuto(text) {
+  fetch(`http://localhost:${PORT}/api/treasure/auto`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
   }).catch(() => {});
 }
 

@@ -2,6 +2,22 @@
 
 All notable changes to Chest Counter are documented here.
 
+## [1.2.0] - 2026-11-17
+
+### Added
+- **Auto Found** — the app reads the Pirate Treasure reveal banner with the same Windows OCR pass that already gates the chest counter, matches the text against the live week's prize names, and marks the tier itself: dry counter reset, gold row, found count +1, and the **TREASURE FOUND** banner. Detecting a prize and pressing **Found** produce identical state.
+- `POST /api/treasure/auto` — loopback-only endpoint the main process posts banner text to. It resolves the prize server-side (it owns the weekly names) and enforces a 60-second per-item cooldown, so a banner held on screen cannot mark twice.
+- `Auto Found` switch on the Treasure tab, persisted as `autoFound` in `treasure.json` and exposed on the state feed.
+- `prizeRegion` in `config.json` — the watched banner rectangle as screen fractions, default centred `0.15 / 0.18 / 0.70 / 0.64`, so a HUD layout that moves the banner off-centre can be accommodated without a rebuild.
+
+### Changed
+- `chest-probe.ps1` now captures two regions: the interact prompt on every tick, and the banner on every fourth tick with its own downscale cap and debounce. A broken banner pass can no longer stop the prompt watcher.
+- Crafter matching rule: full prize names are tried longest-first before any type word answers, and a token-overlap pass absorbs OCR typos. `Gold Chevrolet Corvette ZR1 Decal` resolves to the vehicle decal, never the Gold Outfit.
+- One `markTreasureFound()` path now serves both the panel button and the screen reader, so the two can't drift apart.
+
+### Notes
+- Prizes are granted on Epic's servers. A parsed replay (`164 events`, `264 chests` in the dump) and the 16.5 MB game log both contain zero grant records — `ItemReceived`, `GrantItem`, `AthenaReward` and `FortTreasure` are all absent. Replay- and log-based prize detection is not possible; the reveal banner is the only local evidence.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added

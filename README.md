@@ -10,7 +10,7 @@
 
 <img src="docs/overlay.png" alt="Total chests overlay" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-items.png" alt="Treasure items overlay" height="280">
 
-[**⬇ Download Chest-Counter-1.1.0-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
+[**⬇ Download Chest-Counter-1.2.0-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
 
 </div>
 
@@ -26,6 +26,7 @@ Three read-only sources, no game client access:
 
 - ✅ **Your interact key.** A listen-only low-level keyboard hook sees the key you bound to *interact* going down and up. It never sends input, never presses anything, never automates play.
 - ✅ **A small screenshot of the interact prompt.** Windows OCR checks whether *Search Chest* is on screen, so a key press only counts when a chest is really in range. A press while you are just looting a floor counts nothing.
+- ✅ **A small screenshot of the prize reveal.** When a Pirate Treasure banner names what you won, the same OCR pass reads it and marks that tier Found for you — the reset, the gold row and the jackpot banner all fire as if you had clicked the button.
 - ✅ **The replay files Fortnite writes.** After each match the `.replay` file in `%LOCALAPPDATA%\FortniteGame\Saved\Demos` is parsed in a separate process, read-only, and only the chests the live counter missed are added.
 - ✅ **No access to the game's memory.** Nothing is read from, written to, or injected into the Fortnite process. There is no `OpenProcess`, no DLL, no driver, no overlay injection.
 - ✅ **No input automation.** The hook is a listener. It cannot move your mouse or press a key.
@@ -39,7 +40,7 @@ Because the replay is only complete when the match ends, the post-match audit la
 
 ## Getting started
 
-1. Download **[`Chest-Counter-1.1.0-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
+1. Download **[`Chest-Counter-1.2.0-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
 2. Turn on replays in Fortnite (see above).
 3. Run **`Chest Counter.exe`**.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
@@ -56,7 +57,7 @@ Because the replay is only complete when the match ends, the post-match audit la
 Five tabs: **Live**, **Treasure**, **Replays**, **Overlays** and **Settings**. The header shows whether the listener is on and which app has focus.
 
 - **Live**: total chests, today's chests, chest detection state, and the count sound.
-- **Treasure**: chests since your last drop for every reward tier, the next Treasure Hour with a countdown, and the weekly prize crews.
+- **Treasure**: chests since your last drop for every reward tier, the next Treasure Hour with a countdown, and the weekly prize crews. **Auto Found** marks a prize the moment its reveal banner names it.
 - **Replays**: every finished match, parsed, with the live-versus-replay audit.
 - **Overlays**: the browser-source URLs, their exact pixel sizes, and the TikTok bridge.
 - **Settings**: manual control of the counters.
@@ -124,6 +125,10 @@ Chests are tallied since your last drop for each tier, using Epic's published pe
 <p align="center"><img src="docs/treasures.png" alt="Weekly prize crews" width="620"></p>
 
 **Weekly prizes** flip at Epic's Sunday reset (07:00 UTC). Prize artwork is fetched once from the public CDN and cached in `%APPDATA%\Chest Counter\images` — no Epic assets are redistributed with this app.
+
+**Auto Found** reads the reveal banner. Winning a prize is decided on Epic's servers, so nothing on your disk — not the replay, not the game log — ever records it, and the reveal banner is the only local evidence there is. With the switch on (the default) the app watches that banner, matches the text against the live week's prize names, and marks the tier itself: chests-since drops to zero, the row turns gold, the found count goes up and the **TREASURE FOUND** banner plays. A prize that was already detected cannot fire again inside a minute. Anything the reader misses is still one click away on **Found**.
+
+The watched region is stored in `%APPDATA%\Chest Counter\config.json` as `prizeRegion` (`x`, `y`, `w`, `h` as fractions of the screen, default centred `0.15 / 0.18 / 0.70 / 0.64`). Change it if you run a HUD layout the banner sits outside of.
 
 ## Your data
 

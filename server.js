@@ -58,6 +58,54 @@ const TREASURE_ITEMS = [
   { id: 'loadingScreen', name: 'Weekly Loading Screen',      short: 'Loading Screen',odds: 272 },
   { id: 'gizmo',         name: 'Gizmo (any)',                short: 'Gizmo',         odds: 127, repeatable: true },
 ];
+// ── auto-found from the screen (chest-probe.ps1 → POST /api/treasure/auto) ──
+// Prizes are granted server-side, so neither the replay nor the game log ever
+// records one. The only local evidence is the reveal banner the client draws,
+// which the probe reads as pixels. Words are matched against the live week
+// first (exact names survive), then against the item type word.
+const AUTO_COOLDOWN_MS = 60000;  // same prize can't re-fire inside one minute
+const TYPE_WORDS = [
+  ['gizmo',         ['gizmo', 'smuggler key', 'smugglers key']],
+  ['pickBack',      ['pickaxe', 'back bling', 'backbling']],
+  ['vehicleDecal',  ['decal', 'car decal']],
+  ['jamTrack',      ['jam track', 'jam loop', 'music pack']],
+  ['loadingScreen', ['loading screen']],
+  ['shopAccess',    ['shop access', 'item shop token', 'shop token']],
+  ['goldOutfit',    ['outfit']],
+];
+let autoFound = true;
+const lastAutoAt = {};
+
+const normText = (s) => String(s || '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+// "Gold Mercedes-AMG G 63 Decal" must not resolve to goldOutfit: full names
+// are tried longest-first before any type word is allowed to answer.
+function resolvePrize(raw, week) {
+  const t = normText(raw);
+  if (t.length < 4) return null;
+  const items = (week && week.items) || [];
+  const byName = items.slice().sort((a, b) => normText(b.name).length - normText(a.name).length);
+  for (const it of byName) {
+    const n = normText(it.name);
+    if (n && t.includes(n)) return it.id;
+  }
+  // OCR drops characters: accept a name when most of its long words are there
+  const words = new Set(t.split(' '));
+  let best = null;
+  for (const it of items) {
+    const toks = normText(it.name).split(' ').filter((w) => w.length > 2);
+    if (!toks.length) continue;
+    const score = toks.filter((w) => words.has(w)).length / toks.length;
+    if (score >= 0.66 && (!best || score > best.score)) best = { id: it.id, score };
+  }
+  if (best) return best.id;
+  for (const [id, words2] of TYPE_WORDS) {
+    if (words2.some((w) => t.includes(w))) return id;
+  }
+  return null;
+}
+
 let treasureHour = false;
 // Manual override: a start time + duration the panel can set when Epic
 // announces a window the weekly schedule doesn't know about. When it is unset
@@ -69,6 +117,7 @@ for (const it of TREASURE_ITEMS) { treasure.chestsSince[it.id] = 0; treasure.fou
 try {
   const saved = JSON.parse(fs.readFileSync(TREASURE_FILE, 'utf8'));
   if (typeof saved.hour === 'boolean') treasureHour = saved.hour;
+  if (typeof saved.autoFound === 'boolean') autoFound = saved.autoFound;
   if (typeof saved.nextHourAt === 'string' || saved.nextHourAt === null) nextHourAt = saved.nextHourAt;
   if (Number.isInteger(saved.hourMinutes)) hourMinutes = Math.min(180, Math.max(15, saved.hourMinutes));
   if (saved.chestsSince) for (const it of TREASURE_ITEMS)
@@ -79,7 +128,19 @@ try {
     if (Number.isInteger(saved.foundCount[it.id])) treasure.foundCount[it.id] = Math.max(0, saved.foundCount[it.id]);
 } catch (e) { /* defaults */ }
 function saveTreasure() {
-  try { fs.writeFileSync(TREASURE_FILE, JSON.stringify({ ...treasure, hour: treasureHour, nextHourAt, hourMinutes }), 'utf8'); } catch (e) {}
+  try { fs.writeFileSync(TREASURE_FILE, JSON.stringify({ ...treasure, hour: treasureHour, nextHourAt, hourMinutes, autoFound }), 'utf8'); } catch (e) {}
+}
+
+// One Found, from the panel button or the screen probe — identical effect:
+// the dry counter resets, the row stamps lastFound, foundCount advances, and
+// the panel/overlays get the jackpot event.
+function markTreasureFound(it, source) {
+  treasure.chestsSince[it.id] = 0;
+  treasure.lastFound[it.id] = new Date().toISOString();
+  treasure.foundCount[it.id] = (treasure.foundCount[it.id] || 0) + 1;
+  saveTreasure();
+  broadcast('treasure', { id: it.id, name: it.name, repeatable: !!it.repeatable, source });
+  broadcast('state', fullState());
 }
 
 // the manual override as a start/end pair, or null when nothing is set
@@ -163,6 +224,7 @@ function fullState() {
   return {
     total: counts.total, today: counts.today, date: counts.date,
     chestsHour: chestsPerHour(),
+    autoFound,
     treasureHour: hourActive(now), manualHour: treasureHour,
     scheduledHour: !!(info && info.live && info.source === 'schedule'),
     hourSource: info ? info.source : null,
@@ -233,12 +295,27 @@ app.post('/api/bump',   (req, res) => {
 app.post('/api/treasure', (req, res) => {  const { item } = req.body || {};
   const it = TREASURE_ITEMS.find(t => t.id === item);
   if (!it) { res.status(400).json({ error: 'unknown treasure' }); return; }
-  treasure.chestsSince[it.id] = 0;
-  treasure.lastFound[it.id] = new Date().toISOString();
-  treasure.foundCount[it.id] = (treasure.foundCount[it.id] || 0) + 1;
-  saveTreasure();
-  broadcast('treasure', { id: it.id, name: it.name, repeatable: !!it.repeatable });
+  markTreasureFound(it, 'manual');
   res.json({ ok: true });
+});
+// Screen-probe input: main.js posts the OCR text of the prize reveal banner.
+// Loopback only — the tunnel allowlist carries no POST routes, so this is
+// never reachable from the public overlay URL.
+app.post('/api/treasure/auto', (req, res) => {
+  const { text } = req.body || {};
+  if (!autoFound) { res.json({ ok: false, reason: 'auto-found off' }); return; }
+  const id = resolvePrize(text, currentWeek());
+  if (!id) { res.json({ ok: false, reason: 'no match' }); return; }
+  const it = TREASURE_ITEMS.find((t) => t.id === id);
+  if (!it) { res.json({ ok: false, reason: 'unknown item' }); return; }
+  const now = Date.now();
+  if (now - (lastAutoAt[id] || 0) < AUTO_COOLDOWN_MS) {
+    res.json({ ok: false, reason: 'cooldown', id });
+    return;
+  }
+  lastAutoAt[id] = now;
+  markTreasureFound(it, 'ocr');
+  res.json({ ok: true, id, name: it.name });
 });
 // clear the found history (items overlay) — dry counters stay untouched
 app.post('/api/treasure/reset', (req, res) => {
@@ -255,10 +332,11 @@ app.post('/api/adjust', (req, res) => { const v=parseInt(req.body.amount)||0; co
 app.post('/api/reset',  (req, res) => { const{field}=req.body; if(field==='today')counts.today=0; if(field==='all'){counts.total=0;counts.today=0;} saveCounts(); broadcast('state',fullState()); res.json(counts); });
 app.get('/api/state',   (req, res) => res.json(fullState()));
 app.post('/api/config', (req, res) => {
-  const { dedupeMs: d, treasureHour: h } = req.body || {};
+  const { dedupeMs: d, treasureHour: h, autoFound: a } = req.body || {};
   if (Number.isFinite(d) && d >= 0 && d <= 5000) dedupeMs = d | 0;
   if (typeof h === 'boolean') { treasureHour = h; saveTreasure(); broadcast('state', fullState()); }
-  res.json({ dedupeMs, treasureHour });
+  if (typeof a === 'boolean') { autoFound = a; saveTreasure(); broadcast('state', fullState()); }
+  res.json({ dedupeMs, treasureHour, autoFound });
 });
 
 // Override the weekly schedule with a specific Treasure Hour (only needed when
