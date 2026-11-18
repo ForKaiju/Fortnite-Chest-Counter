@@ -9,6 +9,11 @@ All notable changes to Chest Counter are documented here.
 - **Tighter default banner crop**: `0.24 / 0.28 / 0.52 / 0.44` instead of `0.15 / 0.18 / 0.70 / 0.64`. The reader now watches the centred band the reveal actually occupies, so the pass never sweeps chat, party UI or the minimap. Smaller crop, less to explain, same detection.
 - An existing `prizeRegion` in `config.json` is respected — the new default applies to fresh installs and to configs that have never stored a region. Delete the key (or the file) to pick up the tighter band.
 
+### Added
+- **`Chest-Counter-1.2.1-win-x64-portable.exe`** — a single-file download that needs no unzipping. It is a small self-extracting stub (`portable-sfx.cs`) with the release zip appended and an 8-byte little-endian offset footer; first run unpacks to `%LOCALAPPDATA%\Chest Counter Portable` and launches the app, later runs skip straight to the launch.
+- **`Chest-Counter-1.2.1-source.zip`** — the full tracked source tree at this tag, produced with `git archive`, so the release carries the open source next to the binaries.
+- `build-portable.ps1` — builds the portable exe from the release zip using the `csc.exe` that ships in .NET Framework 4.x; no SDK required.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added

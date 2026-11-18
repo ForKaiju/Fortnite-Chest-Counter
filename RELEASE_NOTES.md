@@ -1,4 +1,14 @@
-**Download `Chest-Counter-1.2.1-win-x64.zip` below, unzip it anywhere writable and run `Chest Counter.exe`.** Nothing to install. Your totals, settings and replay history are kept when you upgrade.
+**Download `Chest-Counter-1.2.1-win-x64-portable.exe` and run it.** That is the whole setup — the first launch unpacks the app into `%LOCALAPPDATA%\Chest Counter Portable`, once, and starts it. No installer, no admin, nothing to unzip.
+
+Three files on this release:
+
+| Asset | What it is |
+|---|---|
+| **`Chest-Counter-1.2.1-win-x64-portable.exe`** | One file, easiest setup. Self-extracting — run it and play |
+| `Chest-Counter-1.2.1-win-x64.zip` | The plain app folder, if you would rather unzip it yourself |
+| `Chest-Counter-1.2.1-source.zip` | The full source tree at this release, for building it yourself |
+
+Your totals, settings and replay history are kept when you upgrade.
 
 > **Turn replays on in Fortnite first**: *Settings → Game → Replays → Record Replays: On*. The app only reads those replay files — no access to the game's memory, no injection, no input automation. Counting is your interact tap, gated by the on-screen chest prompt.
 
@@ -16,6 +26,6 @@
 
 **Why this stays outside Epic's rules**: no process handle, no memory read, no injection, no DLL, no driver, no input sent to the game, no account, no network egress. The app reads pixels you can already see and the replay files Fortnite writes for you, then records them locally.
 
-Windows may show *"Windows protected your PC"* because the exe is unsigned: *More info → Run anyway*.
+Windows may show *"Windows protected your PC"* because the exe is unsigned: *More info → Run anyway*. The portable exe is signed by nobody in particular — it carries the release zip appended to a small self-extracting stub, and the stub's source is [`portable-sfx.cs`](https://github.com/ForKaiju/Fortnite-Chest-Counter/blob/main/portable-sfx.cs) if you want to read or build it yourself.
 
 The app lives in your system tray; closing the window does not stop the counter. First time you switch the TikTok bridge on, it downloads `cloudflared.exe` (~55 MB, Cloudflare's own tool) into `%APPDATA%\Chest Counter`. The bridge is off by default — it is the only thing in the app that puts a page on the public internet.

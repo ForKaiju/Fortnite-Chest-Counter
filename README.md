@@ -10,7 +10,9 @@
 
 <img src="docs/overlay.png" alt="Total chests overlay" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-items.png" alt="Treasure items overlay" height="280">
 
-[**⬇ Download Chest-Counter-1.2.1-win-x64.zip**](../../releases/latest) · Windows 10 / 11 · free · no install
+[**⬇ Download Chest-Counter-1.2.1-win-x64-portable.exe**](../../releases/latest) · Windows 10 / 11 · free · no install
+
+<sub>Prefer the plain folder? [`Chest-Counter-1.2.1-win-x64.zip`](../../releases/latest) · building it yourself? [`Chest-Counter-1.2.1-source.zip`](../../releases/latest)</sub>
 
 </div>
 
@@ -40,12 +42,13 @@ Because the replay is only complete when the match ends, the post-match audit la
 
 ## Getting started
 
-1. Download **[`Chest-Counter-1.2.1-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own. There is no installer.
-2. Turn on replays in Fortnite (see above).
-3. Run **`Chest Counter.exe`**.
+1. Download **[`Chest-Counter-1.2.1-win-x64-portable.exe`](../../releases/latest)** and run it. That is the whole setup: the first launch unpacks the app into `%LOCALAPPDATA%\Chest Counter Portable` (once, about ten seconds) and starts it. No installer, no admin, nothing to unzip.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
-4. The panel opens on the **Live** tab. The key listener and the prompt gate are already on.
-5. Leave it running while you play. It lives in the system tray — closing the window does not stop the counter.
+   >
+   > Prefer your own folder? Download **[`Chest-Counter-1.2.1-win-x64.zip`](../../releases/latest)** and unzip it anywhere writable — Desktop, Documents, a folder of your own — then run **`Chest Counter.exe`** from inside it.
+2. Turn on replays in Fortnite (see above).
+3. The panel opens on the **Live** tab. The key listener and the prompt gate are already on.
+4. Leave it running while you play. It lives in the system tray — closing the window does not stop the counter.
 
 <p align="center"><img src="docs/home.png" alt="Live tab" width="620"></p>
 
@@ -169,7 +172,10 @@ The folder survives upgrades. Delete it to start clean, or keep just `counts.jso
 
 ## Build it yourself
 
-Needs **Node.js 18+**. The release zip does not contain sources.
+Needs **Node.js 18+**. Two ways in:
+
+- **[`Chest-Counter-1.2.1-source.zip`](../../releases/latest)** — the whole tracked tree at this release, sources and build scripts, no binaries.
+- `git clone https://github.com/ForKaiju/Fortnite-Chest-Counter` — same thing, plus history.
 
 ```bash
 npm install
@@ -177,6 +183,14 @@ npm start          # dev mode
 npm run build      # dist/Chest Counter-win32-x64  (slim)
 npm run release    # release/Chest-Counter-<version>-win-x64.zip
 ```
+
+To produce the single-file portable exe as well — the stub in `portable-sfx.cs` with the release zip appended and an 8-byte offset footer:
+
+```powershell
+.\build-portable.ps1   # release/Chest-Counter-<version>-win-x64-portable.exe
+```
+
+It compiles with the `csc.exe` that ships in .NET Framework 4.x, so no SDK is needed. Run `build-release.ps1` first — the portable step only wraps an existing release zip.
 
 The default build is slim: English locale only, no tunnel binary. `build-manual.ps1 -Full` ships `cloudflared.exe` so the bridge works offline. The GitHub Actions workflow builds on every tag and attaches the zip to the release with the text of [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
